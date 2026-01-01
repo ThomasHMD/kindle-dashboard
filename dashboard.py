@@ -976,7 +976,8 @@ def livre_du_jour(maintenant, sortie):
 
 
 def mot_du_jour(maintenant, sortie):
-    """Le mot du jour du Wiktionnaire (sa page peut manquer quand le mot est programmé d'avance : jour d'avant)."""
+    """Le mot du jour du Wiktionnaire. Il arrive qu'il n'ait pas de page (« néphritique », 01/01/2026) : on prend alors
+    celui du même jour les années d'avant, jamais vu à l'écran, plutôt que celui de la veille, qui n'est qu'un dernier recours."""
     cache = sortie / "cache"
     fiche = cache / f"mot-{maintenant:%Y-%m-%d}.json"
     if fiche.exists():
@@ -987,7 +988,7 @@ def mot_du_jour(maintenant, sortie):
         r = json.loads(telecharger(api + urllib.parse.urlencode({"action": "parse", "page": page, "prop": "wikitext",
                                                                  "format": "json", "redirects": 1})))
         return (r.get("parse") or {}).get("wikitext", {}).get("*")
-    for recul in range(4):
+    for recul in (0, 365, 730, 1095, 1460, 1825, 1, 2, 3):
         jour = maintenant - dt.timedelta(days=recul)
         mot = re.sub(r"<noinclude>.*", "", wikitexte(f"Modèle:Mot_du_jour/{jour:%Y/%m/%d}") or "", flags=re.S).strip()
         t = wikitexte(mot) if mot else None
@@ -1231,7 +1232,7 @@ def ecran_mot(maintenant, m):
             f'<div class="le-mot" style="font-size:{taille}px">{esc(m["mot"])}</div>'
             f'<div class="pron">{pron}<span class="s16 gras">{esc(m["nature"].upper())}</span></div>'
             f'<ol>{defs}</ol>{exemple}{etym}'
-            f'<div class="source s16">MOT DU JOUR DU {jour.day} {MOIS[jour.month - 1]} · WIKTIONNAIRE, CC BY-SA</div></section>')
+            f'<div class="source s16">MOT DU JOUR DU {jour.day} {MOIS[jour.month - 1]}{f" {jour.year}" if jour.year != maintenant.year else ""} · WIKTIONNAIRE, CC BY-SA</div></section>')
 
 
 def ecran_stations(maintenant, liste, raison):
