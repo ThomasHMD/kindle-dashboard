@@ -1,0 +1,18 @@
+{
+ "_aide": "Copier ce fichier en config.json (jamais publié, voir .gitignore) puis l'adapter. Détail de chaque clé : README.md, « Réglages ».",
+ "lieu": {"nom": "Lille", "lat": 50.6366, "lon": 3.0635},
+ "agendas": {"primary": "Agenda"},
+ "agendas_sorties": ["Agenda"],
+ "pas_une_sortie": "sport|salle",
+ "poubelles": {"0": "POUBELLE", "2": "RECYCLABLE"},
+ "notion": {"concepts": "", "bibliotheque": "", "jeton_bibliotheque": "NOTION_TOKEN"},
+ "abonnes": "",
+ "stations": [
+  {"nom": "Tourcoing Centre", "mode": "TRAM", "parent": "6666", "ligne": "71", "sens": "1",
+   "direct": ["TOURCOING CENTRE", "LILLE FLANDRES"], "vers": "LILLE"},
+  {"nom": "Tourcoing Centre", "mode": "MÉTRO 2", "parent": "6666", "ligne": "ME2", "sens": "0", "vers": "LILLE"},
+  {"nom": "Lille Flandres", "mode": "MÉTRO 1", "parent": "920", "ligne": "ME1", "sens": "1", "vers": "4 CANTONS"}
+ ],
+ "stations_creneaux": [{"jour": 0, "de": "07:00", "a": "09:30", "texte": "LUNDI MATIN"}],
+ "ecrans_retires": []
+}
