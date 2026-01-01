@@ -1,14 +1,14 @@
 # Kindle dashboard
 
-**Un vieux Kindle 4 devenu écran d'affichage permanent : météo, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation.**
+**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation.**
 
-Le Mac fabrique les images, la liseuse ne fait que les afficher. Chaque minute, un script rassemble les données, remplit une page HTML, la photographie avec Chromium à la taille exacte de la dalle et la passe en 16 niveaux de gris. La liseuse, jailbreakée et branchée sur un chargeur, lit l'état du Mac en wifi toutes les 20 secondes et ne télécharge l'écran que s'il a changé. Style néo-rétro : polices pixel à leurs tailles natives, titres inversés, trames, aucun texte gris.
+Mon Mac fabrique les images, la liseuse ne fait que les afficher. Chaque minute, un script rassemble les données, remplit une page HTML, la photographie avec Chromium à la taille exacte de la dalle et la passe en 16 niveaux de gris. La liseuse, jailbreakée et branchée sur un chargeur, lit l'état du Mac en wifi toutes les 20 secondes et ne télécharge l'écran que s'il a changé. Style néo-rétro : polices pixel à leurs tailles natives, titres inversés, trames, aucun texte gris.
 
 <img src="assets/apercu.png" width="800" alt="Six écrans du dashboard : météo, agenda, stations, lumière, dessin du jour, mot du jour">
 
 *Écrans fabriqués par `demo.py`, sans aucun compte (agenda fictif). Sur la liseuse, ils sortent en 800 × 600, 16 gris, tournés dans le sens de la dalle.*
 
-> Auteur : Thomas Hammoudi, photographe. Travail fait avec Claude Code, en 2026. Les textes et le code sont en français.
+> Je suis Thomas Hammoudi, photographe. J'ai construit tout ça avec Claude Code, en 2026. Les textes et le code sont en français.
 
 ## Essayer en deux minutes, sans liseuse
 
@@ -33,7 +33,7 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Mes stations | 3 prochains départs, direction, premier et dernier départ du jour, premier et dernier retour | ilévia (Lille) : temps réel et GTFS | rien |
 | Lumière du jour | prochain moment photo (ce matin, ce soir ou demain matin) et son verdict (net, prometteur, moyen, bouché, pluie), heures bleue et dorée, boussole de la course du soleil, part du ciel couvert par étage de nuages pendant l'heure dorée, chaque étage expliqué à l'écran | calcul local (formules NOAA) et Open-Meteo | rien |
 | Dessin du jour | un concept, une consigne de 10 à 30 min, un dessin ancien du domaine public | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | rien (Notion, facultatif) |
-| Livre à lire | un livre de sa bibliothèque pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
+| Livre à lire | un livre de ma bibliothèque que je n'ai pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
 | Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
 | Citation | la citation du jour de Wikiquote, sinon une de la banque | [`citations.json`](citations.json) | rien |
 | Demain | la nuit, les rendez-vous du lendemain | Google Agenda | idem Agenda |
@@ -63,7 +63,7 @@ Il faut un Mac allumé en permanence (le serveur tourne en agent launchd ; sous 
 
 ## Côté liseuse
 
-Testé sur un **Kindle 4** non tactile (2011, firmware 4.1.4). Le Kindle 5e génération (2012), le Touch et le Paperwhite 1 sont prévus par `--modele` mais n'ont pas été essayés. Il faut un wifi 2,4 GHz en WPA2.
+Je l'ai testé sur mon **Kindle 4** non tactile (2011, firmware 4.1.4). Le Kindle 5e génération (2012), le Touch et le Paperwhite 1 sont prévus par `--modele`, mais je ne les ai pas essayés. Il faut un wifi 2,4 GHz en WPA2.
 
 1. **Jailbreak** : pour le Kindle 4, le [K4-Jailbreak de KindleModding](https://github.com/KindleModding/K4-Jailbreak), par le mode diagnostic, sans wifi ni compte Amazon. Les autres modèles et les pièges sont dans [`RECHERCHE.md`](RECHERCHE.md) §2. Ne jamais réinitialiser un Paperwhite 1 : Amazon refuse ensuite de l'enregistrer.
 2. **KUAL** (le lanceur d'extensions) dans `documents/`, depuis [kindlemodding.org](https://kindlemodding.org/).
@@ -86,7 +86,7 @@ Ensuite, plus besoin du câble : `python3 liseuse.py '<commande shell>'` exécut
 | Liseuse redémarrée branchée au Mac | elle passe en clé USB ; `serveur.py` l'éjecte au bout de 2 min (sauf fichier `garder-usb` dans le dossier de sortie) |
 | `dashboard.py` trop long | arrêté à 110 s ; la liseuse garde les derniers écrans, l'heure du relevé dans le bandeau dit leur âge |
 
-Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, pas quelqu'un qui écoute le wifi. La liseuse ne vérifie pas le Mac. Acceptable pour une vieille liseuse sans compte ni donnée.
+Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, pas quelqu'un qui écoute le wifi. La liseuse ne vérifie pas le Mac. Ça me va pour une vieille liseuse sans compte ni donnée.
 
 ## Rotation
 
@@ -123,14 +123,14 @@ Pour trouver `parent`, `ligne` et `sens` d'une station ilévia : `stops.txt` (le
 
 La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs`, `Éditeur`, `Date de publication`, `Pages`, `Possession` (case), `Lu` (choix « Non »), `Résumé`, `Tags`, `Type` et une formule `Chemin de la couverture (calc.)` qui donne l'adresse de l'image ; `Suggéré ?` (formule) est facultative. La base des concepts : `Concept` et `Définition`. Sans base de concepts, le dessin du jour prend les 21 concepts de `consignes-dessin.json`.
 
-## Ce qu'on a appris en chemin
+## Ce que j'ai appris en chemin
 
 - **ilévia, temps réel** (`dsp_ilevia:prochains_passages`, OGC API de la Métropole européenne de Lille, sans clé) : les heures portent un « Z » mais sont à l'heure de Paris ; seulement les 3 prochains passages par sens ; le métro n'y est pas. Le métro, les premiers et derniers passages, et le tram quand le temps réel se tait, viennent donc du **GTFS** (9 Mo, téléchargé au plus une fois par jour) : services par `calendar_dates.txt` seulement, heures au-delà de 24:00 pour la nuit, deux jours de service lus pour passer minuit.
 - **BusyBox 1.7.2** (celui du Kindle 4, 2007) : `wget` sans `--header` (le jeton passe dans l'agent utilisateur, `-U`) et sans délai ; `timeout` seulement en `timeout -t 5` (`timeout 5` plante) ; pas de `od`, de `command -v` ni de `grep -E` ; `printf` n'est pas intégré au shell (50 ms par appel). Les scripts sont contrôlés sur le Mac par `dash -n` avant d'être servis.
 - **Touches** : un `dd` et un `hexdump` par évènement de `/dev/input/event*`, périphérique gardé ouvert ; 0,7 s d'un appui à l'écran (dont 0,36 s d'`eips`).
 - **E-ink** : polices pixel seulement à leurs tailles natives (VT323 25, 50, 75… ; Silkscreen 16, 24), sans lissage ; aucun texte gris sur une dalle Pearl ; images au contraste étiré puis tramées en 16 gris (Floyd-Steinberg), l'arrondi simple fait des bandes. Mesures et sources : [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md).
 - **Dessins pour l'e-ink** : l'API ouverte du Cleveland Museum renvoie aussi des aquarelles et des feuilles pâles ; `affichable()` garde les techniques graphiques (graphite, craie, plume, fusain, lavis), écarte la couleur, les rectos-versos, les formats extrêmes, et exige une encre entre 4 et 45 % de la surface (seuils calés sur 20 dessins).
-- **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister (on prend celui de la veille) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
+- **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister, ou ne jamais exister (je prends alors celui du même jour une année passée) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
 - **Google** : un client OAuth en mode « Test » voit ses jetons expirer en 7 jours ; `verifier.py` fait un vrai échange de jeton pour le voir venir.
 
 ## Fichiers
@@ -148,7 +148,7 @@ La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs
 | [`demo.py`](demo.py) | tous les écrans sans compte |
 | [`liseuse/dashboard/`](liseuse/dashboard) | scripts de la liseuse : `noyau.sh` > `superviseur.sh` > `boucle.sh` et `touches.sh` ; `demarrage-auto.sh`, `tester.sh`, `config.sh` |
 | [`liseuse/extensions/kindle-dashboard/`](liseuse/extensions/kindle-dashboard) | menu KUAL |
-| [`RECHERCHE.md`](RECHERCHE.md) | identifier sa liseuse, jailbreak par modèle, afficher une image, USB ou wifi, projets existants, batterie |
+| [`RECHERCHE.md`](RECHERCHE.md) | identifier une liseuse, jailbreak par modèle, afficher une image, USB ou wifi, projets existants, batterie |
 | [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md) | dashboards e-ink réussis, règles de l'e-ink, cadence de rotation, maquettes |
 
 ## Licence
@@ -159,4 +159,4 @@ Kindle est une marque d'Amazon. Ce projet n'est ni affilié à Amazon, ni à il�
 
 ## In English
 
-An always-on dashboard for a jailbroken Kindle 4 (2011): weather, calendar, mail, live tram and metro departures (Lille's ilévia network, real-time API and GTFS), drawing prompt of the day with a public-domain drawing from the Cleveland Museum of Art, golden and blue hour forecast, French word and quote of the day. A Mac renders each screen from HTML with headless Chromium, dithers it to 16 grays and serves it over the local network; the Kindle polls every 20 seconds, updates itself, survives Mac outages and bad updates. Try it without a Kindle or any account: `python3 demo.py`. Code and docs are in French; MIT licence.
+My always-on dashboard on a jailbroken Kindle 4 (2011): weather, calendar, mail, live tram and metro departures (Lille's ilévia network, real-time API and GTFS), drawing prompt of the day with a public-domain drawing from the Cleveland Museum of Art, golden and blue hour forecast, French word and quote of the day. My Mac renders each screen from HTML with headless Chromium, dithers it to 16 grays and serves it over the local network; the Kindle polls every 20 seconds, updates itself, survives Mac outages and bad updates. Try it without a Kindle or any account: `python3 demo.py`. Code and docs are in French; MIT licence.
