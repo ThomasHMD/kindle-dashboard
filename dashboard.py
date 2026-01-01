@@ -60,19 +60,19 @@ PLAYLIST = {
     "matin": ("06:30", "09:00", [("meteo", 360), ("stations", 360), ("agenda", 360), ("lumiere", 300), ("courrier", 240),
                                  ("air", 180), ("mot", 240), ("citation", 180)]),
     "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("activite", 240), ("air", 240),
-                                   ("stations", 360), ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240),
+                                   ("stations", 360), ("avions", 240), ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240),
                                    ("citation", 180), ("insolite", 240), ("fin", 300)]),
-    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("fin", 240), ("dessin", 480), ("livre", 360),
+    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("fin", 240), ("avions", 240), ("dessin", 480), ("livre", 360),
                                   ("insolite", 300), ("mot", 240), ("citation", 180)]),
     "nuit": ("23:00", "06:30", [("demain", 1800)]),
 }
 IMMINENT = 45  # minutes avant une sortie : l'écran Stations reste affiché, la rotation s'arrête
-PLEIN = ("meteo", "air", "activite", "citation", "insolite", "fin", "stations", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
+PLEIN = ("meteo", "air", "activite", "citation", "insolite", "fin", "stations", "avions", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
 # Flash complet en arrivant sur un écran (les écrans conditionnels changent l'enchaînement : une disposition peut en
 # suivre une autre n'importe où) ; partiel pour la mise à jour d'un écran qui reste.
-COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "lumiere", "dessin", "livre", "mot", "citation",
+COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
              "insolite", "fin", "demain")
-NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "lumiere", "dessin", "livre", "mot", "citation",
+NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
               "insolite", "fin", "demain"]  # ordre des boutons de la liseuse
 HEURE_FIN = 17  # à partir de cette heure, l'écran Fin de journée entre dans le cycle
 RETIRAGE = 13  # heure du second tirage du jour : dessin, livre, mot et citation changent pour l'après-midi
@@ -91,6 +91,20 @@ BIBLIOTHEQUE = NOTION.get("bibliotheque", "")  # bibliothèque de livres (data s
 JETON_BIBLIOTHEQUE = NOTION.get("jeton_bibliotheque", "NOTION_TOKEN")
 CLIENT_GOOGLE = CONFIG.get("google_client", ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"])  # variables du .env, client « Desktop »
 AIR = "https://air-quality-api.open-meteo.com/v1/air-quality"
+# Avions dans un rayon de 25 milles nautiques (46 km) : ADS-B ouvert, la seconde source si la première se tait.
+ADSB = ("https://api.adsb.lol/v2/lat/{lat}/lon/{lon}/dist/25", "https://opendata.adsb.fi/api/v2/lat/{lat}/lon/{lon}/dist/25")
+ADSBDB = "https://api.adsbdb.com/v0/"
+RAYON_RADAR = 46  # km
+# Le genre d'appareil en clair, d'après la catégorie ADS-B.
+CATEGORIES_AVION = {"A1": "Petit avion", "A2": "Avion léger", "A3": "Avion de ligne", "A4": "Gros porteur", "A5": "Gros porteur",
+                    "A7": "Hélicoptère", "B1": "Planeur", "B2": "Ballon", "B4": "ULM", "B6": "Drone"}
+VILLES_FR = {"London": "Londres", "Lisbon": "Lisbonne", "Hamburg": "Hambourg", "Sevilla": "Séville", "Geneva": "Genève", "Roma": "Rome", "Rome": "Rome", "Milano": "Milan", "Venezia": "Venise",
+             "Napoli": "Naples", "Firenze": "Florence", "Lisboa": "Lisbonne", "Porto": "Porto", "Bruxelles": "Bruxelles", "Brussels": "Bruxelles",
+             "Köln": "Cologne", "Cologne": "Cologne", "München": "Munich", "Munich": "Munich", "Wien": "Vienne", "Vienna": "Vienne",
+             "Praha": "Prague", "Warszawa": "Varsovie", "Warsaw": "Varsovie", "København": "Copenhague", "Copenhagen": "Copenhague",
+             "Athina": "Athènes", "Athens": "Athènes", "Moskva": "Moscou", "Dublin": "Dublin", "Edinburgh": "Édimbourg", "Barcelona": "Barcelone",
+             "Mallorca": "Majorque", "Palma De Mallorca": "Majorque", "Tenerife": "Tenerife", "Malaga": "Malaga", "Málaga": "Malaga"}
+DIRECTIONS = ("au nord", "au nord-est", "à l'est", "au sud-est", "au sud", "au sud-ouest", "à l'ouest", "au nord-ouest")
 # Indice européen (EAQI) : plafond du niveau, nom, conseil.
 NIVEAUX_AIR = ((20, "BON", "Rien à signaler, on peut tout ouvrir."), (40, "CORRECT", "Aucune précaution à prendre."),
                (60, "MOYEN", "Personnes sensibles : moins de sport dehors."), (80, "MAUVAIS", "Éviter le sport intense dehors."),
@@ -531,6 +545,92 @@ def inscrits_recents(maintenant):
     return {"periodes": [sum(1 for d in dates if d >= b) for b in bornes]}
 
 
+def geo(lat1, lon1, lat2, lon2):
+    """(distance en km, cap en degrés) d'un point à l'autre."""
+    p1, p2, dl = math.radians(lat1), math.radians(lat2), math.radians(lon2 - lon1)
+    a = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    cap_vers = math.degrees(math.atan2(math.sin(dl) * math.cos(p2),
+                                       math.cos(p1) * math.sin(p2) - math.sin(p1) * math.cos(p2) * math.cos(dl)))
+    return 6371 * 2 * math.asin(math.sqrt(a)), cap_vers % 360
+
+
+def ville(aeroport):
+    """Nom de ville court et en français : « Lille/Lesquin » → Lille, « London » → Londres."""
+    nom = latin(aeroport["municipality"]).split("/")[0].strip()
+    return VILLES_FR.get(nom, nom)
+
+
+def modele_lisible(fiche):
+    """« Airbus A320 271NSL » → Airbus A320, « Boeing 737NG 800/W » → Boeing 737, « Robin DR.400 120 » → Robin DR400."""
+    marque = (fiche.get("manufacturer") or "").split(" ")[0]
+    serie = (fiche.get("type") or "").split(" ")[0].replace("NG", "").replace("MAX", " MAX").replace("DR.", "DR")
+    return latin(f"{marque} {serie}".strip())
+
+
+def route_plausible(a, r):
+    """adsbdb donne la route habituelle d'un indicatif, parfois périmée (un Hurghada-Nantes cap au nord-est au-dessus de
+    Lille, 01/01/2026) : l'avion doit être à peu près sur le chemin et voler vers sa destination."""
+    o, d = r["origin"], r["destination"]
+    trajet = geo(o["latitude"], o["longitude"], d["latitude"], d["longitude"])[0]
+    deja = geo(o["latitude"], o["longitude"], a["lat"], a["lon"])[0]
+    reste, vers = geo(a["lat"], a["lon"], d["latitude"], d["longitude"])
+    ecart = abs((vers - a.get("track", vers) + 180) % 360 - 180)
+    return deja + reste <= 1.2 * trajet + 100 and (reste < 150 or ecart <= 70)
+
+
+def adsbdb(chemin, memoire, cle, champ):
+    """Une fiche d'adsbdb, gardée dans `memoire` : None si elle n'existe pas ; les pannes ne sont pas retenues."""
+    if cle not in memoire:
+        try:
+            memoire[cle] = appel(ADSBDB + chemin)["response"].get(champ)
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                return None
+            memoire[cle] = None
+        except (urllib.error.URLError, TimeoutError, ValueError, AttributeError):
+            return None
+    return memoire[cle]
+
+
+def avions(maintenant, sortie):
+    """Les avions en vol autour du lieu, du plus proche au plus loin, avec d'où ils viennent et où ils vont si on le
+    sait. Position arrondie à 1 km environ dans les requêtes. Routes gardées la journée."""
+    lat, lon = round(LIEU["lat"], 2), round(LIEU["lon"], 2)
+    for n, modele in enumerate(ADSB):
+        try:
+            r = appel(modele.format(lat=lat, lon=lon))
+            break
+        except (urllib.error.URLError, TimeoutError, ValueError):
+            if n == len(ADSB) - 1:
+                raise
+    en_vol = []
+    for a in r.get("ac") or r.get("aircraft") or []:
+        if "lat" in a and isinstance(a.get("alt_baro"), (int, float)) and a["alt_baro"] > 0 and (a.get("flight") or "").strip():
+            d, c = geo(LIEU["lat"], LIEU["lon"], a["lat"], a["lon"])
+            en_vol.append({**a, "dist": d, "cap": c})
+    en_vol.sort(key=lambda a: a["dist"])
+    fichier = sortie / "cache" / f"routes-{maintenant:%Y-%m-%d}.json"
+    try:
+        memoire = json.loads(fichier.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        memoire = {}
+    liste = []
+    for n, a in enumerate(en_vol[:25]):
+        indicatif = a["flight"].strip()
+        r = adsbdb(f"callsign/{indicatif}", memoire, indicatif, "flightroute") if n < 10 else None  # poli avec une API gratuite
+        route = None
+        if r and r.get("origin") and r.get("destination") and route_plausible(a, r):
+            route = {"de": ville(r["origin"]), "vers": ville(r["destination"]),
+                     "compagnie": latin((r.get("airline") or {}).get("name") or "")}
+        fiche = adsbdb(f"aircraft/{a.get('hex', '')}", memoire, f"hex-{a.get('hex', '')}", "aircraft") if n < 10 else None
+        liste.append({"indicatif": indicatif, "modele": modele_lisible(fiche) if fiche else "",
+                      "genre": CATEGORIES_AVION.get(a.get("category"), "Avion"), "route": route, "dist": a["dist"], "cap": a["cap"],
+                      "track": a.get("track"), "altitude": a["alt_baro"] * 0.3048, "vitesse": (a.get("gs") or 0) * 1.852})
+    ecrire(fichier, json.dumps(memoire, ensure_ascii=False))
+    garder_du_jour(sortie / "cache", "routes-2*.json", fichier.name)
+    return {"avions": liste}
+
+
 def citation(maintenant):
     """Le matin, la citation du jour de Wikiquote si elle existe pour cette date ; sinon, et l'après-midi, une de la
     banque choisie d'après le tirage du moment."""
@@ -713,7 +813,7 @@ def ecran(maintenant, panneau, contenu, meteo_html=None, importants=0):
     points = "".join(f'<i class="{"ici" if p == panneau else ""}"></i>' for p in NAVIGATION)
     quoi = POUBELLES.get(maintenant.weekday())  # la veille du ramassage, toute la journée
     rappel = f'<span class="badge rappel">{icone("poubelle", 16)}<span class="s16 gras">{quoi}</span></span>' if quoi else ""
-    # Place comptée (15 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
+    # Place comptée (16 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
     jours, mois = (JOURS_COURTS, MOIS_COURTS) if rappel and badge else (JOURS, MOIS_COURTS) if rappel else (JOURS, MOIS)
     if badge and not rappel and len(f"{JOURS[maintenant.weekday()]} {maintenant.day} {MOIS[maintenant.month - 1]}") > 18:
         mois = MOIS_COURTS
@@ -1381,6 +1481,69 @@ def ecran_air(maintenant, a):
     return f'<section class="lumiere air"><div class="haut">{heros}{courbe}</div>{polluants}{bas}</section>'
 
 
+def radar(liste, heros):
+    """Le ciel vu du dessus, nord en haut, moi au centre : rose des vents autour, chaque avion et le sens de son vol."""
+    c, R = 170, 142
+    s = [f'<svg class="radar" width="{2 * c}" height="{2 * c}" viewBox="0 0 {2 * c} {2 * c}">',
+         f'<circle cx="{c}" cy="{c}" r="{R}" fill="none" stroke="#000" stroke-width="2"/>',
+         f'<circle cx="{c}" cy="{c}" r="{R / 2}" fill="none" stroke="#000" stroke-dasharray="2 4"/>',
+         f'<path d="M{c - 8} {c}h16M{c} {c - 8}v16" stroke="#000" stroke-width="2"/>']
+    for az in range(0, 360, 15):  # graduations : 15° en petit, 45° en grand
+        long = 10 if az % 45 == 0 else 5
+        x, y = math.sin(math.radians(az)), -math.cos(math.radians(az))
+        s.append(f'<line x1="{c + R * x:.1f}" y1="{c + R * y:.1f}" x2="{c + (R - long) * x:.1f}" y2="{c + (R - long) * y:.1f}" '
+                 f'stroke="#000" stroke-width="{3 if az % 90 == 0 else 2}"/>')
+    for n, t in enumerate(("N", "NE", "E", "SE", "S", "SO", "O", "NO")):
+        x, y = math.sin(math.radians(n * 45)), -math.cos(math.radians(n * 45))
+        s.append(f'<text x="{c + (R + 15) * x:.1f}" y="{c + (R + 15) * y + 6:.1f}" text-anchor="middle" class="cap">{t}</text>')
+    s.append(f'<text x="{c + 4}" y="{c - R / 2 - 4:.0f}" class="cap">{RAYON_RADAR // 2} KM</text>')
+    for a in sorted(liste, key=lambda a: a is heros):
+        d = min(a["dist"], RAYON_RADAR) / RAYON_RADAR * (R - 12)
+        x, y = c + d * math.sin(math.radians(a["cap"])), c - d * math.cos(math.radians(a["cap"]))
+        if a is heros:  # l'avion affiché en gros : une silhouette tournée dans le sens de son vol, cerclée
+            s.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="20" fill="#fff" stroke="#000" stroke-width="2"/>'
+                     f'<path transform="translate({x:.1f} {y:.1f}) rotate({a["track"] or 0:.0f})" fill="#000" d="M0-15L2-10V-3L14 4V7L2 4V10L5 13V15L0 13.5'
+                     f'L-5 15V13L-2 10V4L-14 7V4L-2-3V-10Z"/>')
+            continue
+        if a["track"] is not None:
+            t = math.radians(a["track"])
+            s.append(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + 18 * math.sin(t):.1f}" y2="{y - 18 * math.cos(t):.1f}" stroke="#000" stroke-width="2"/>')
+        s.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="#000"/>')
+    return "".join(s) + "</svg>"
+
+
+def ecran_avions(maintenant, v):
+    titre = "AU-DESSUS DE CHEZ MOI"
+    if "erreur" in v:
+        return entete(titre) + f'<p>{esc(v["erreur"])}</p>'
+    liste = v["avions"]
+    if not liste:
+        return entete(titre) + "<p>Aucun avion dans le ciel en ce moment.</p>"
+    heros = next((x for x in liste if x["route"]), liste[0])
+    km = lambda x: f'{x["dist"]:.0f} km {DIRECTIONS[round(x["cap"] / 45) % 8]}'  # noqa: E731
+    alt = lambda x: f'{nombre(round(x["altitude"], -2))} m'.replace(".0", "")  # noqa: E731
+    r = heros["route"]
+    if r:
+        taille = 50 if max(len(r["de"]), len(r["vers"])) > 14 else 75
+        trajet = (f'<div class="ville" style="font-size:{taille}px">{esc(r["de"])}</div><div class="fleche s16 gras">VERS</div>'
+                  f'<div class="ville" style="font-size:{taille}px">{esc(r["vers"])}</div>')
+    else:
+        trajet = f'<div class="ville">{esc(heros["genre"])}</div><div class="fleche s16 gras">ON NE SAIT PAS OÙ IL VA</div>'
+    avion = " · ".join(x for x in ((r or {}).get("compagnie"), heros["modele"]) if x)
+    chiffres = (f'<div class="fiche"><div class="s16 gras">{esc(avion.upper())}</div>'
+                f'<div>{alt(heros)} d\'altitude · {round(heros["vitesse"], -1):.0f} km/h</div><div>à {km(heros)} de chez moi</div></div>')
+    autres = [x for x in liste if x is not heros and x["indicatif"] != heros["indicatif"]]
+    autres.sort(key=lambda x: (x["route"] is None, x["dist"]))
+    lignes = "".join(
+        f'<span class="coupe">{esc((x["route"] or {}).get("compagnie") or x["genre"])}</span>'
+        f'<span class="coupe">{esc(x["route"]["de"]) + " › " + esc(x["route"]["vers"]) if x["route"] else esc(x["modele"] or "trajet inconnu")}</span>'
+        f'<span>{alt(x)}</span><span>{km(x)}</span>' for x in autres[:4])
+    titres = "".join(f'<span class="s16 gras">{t}</span>' for t in ("COMPAGNIE", "TRAJET OU MODÈLE", "ALTITUDE", "DISTANCE"))
+    bas = f'<div class="double"></div><div class="suivants">{titres}{lignes}</div>' if lignes else ""
+    return (f'<section class="avions">{entete(titre, f"<span class=s16>{len(liste)} EN VOL DANS {RAYON_RADAR} KM</span>")}'
+            f'<div class="haut"><div class="heros">{trajet}{chiffres}</div>{radar(liste, heros)}</div>{bas}</section>')
+
+
 def bloc_media(nom, x, maintenant):
     """Colonne de l'écran Activité : une publication, ses vues en gros."""
     if "erreur" in x:
@@ -1612,6 +1775,7 @@ def main():
         "reseaux": lambda: en_cache(args.sortie, "reseaux", ttl(10800), reseaux, maintenant),
         "air": lambda: en_cache(args.sortie, "air", ttl(3600), air, maintenant),
         "citation": lambda: sur(citation, maintenant),
+        "avions": lambda: en_cache(args.sortie, "avions", ttl(180 if 7 <= maintenant.hour < 23 else 3600), avions, maintenant, args.sortie),
         "video": lambda: en_cache(args.sortie, "video", ttl(1800), derniere_video, maintenant),
         "reel": lambda: en_cache(args.sortie, "reel", ttl(1800), dernier_reel, maintenant),
         "ventes": lambda: en_cache(args.sortie, "ventes", ttl(600), ventes_recentes, maintenant),
@@ -1648,6 +1812,7 @@ def main():
         "air": lambda: ecran_air(maintenant, sources["air"]()),
         "activite": lambda: ecran_activite(maintenant, *(sources[x]() for x in ("video", "reel", "ventes", "inscrits"))),
         "insolite": lambda: ecran_insolite(maintenant, sources["insolite"](), args.sortie),
+        "avions": lambda: ecran_avions(maintenant, sources["avions"]()),
         "fin": lambda: ecran_fin(maintenant, m, sources["agenda"]()),
         "agenda": lambda: panneau_agenda(maintenant, sources["agenda"]()),
         "courrier": lambda: panneau_courrier(maintenant, c),
