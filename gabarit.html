@@ -142,23 +142,24 @@ img.t16 { display: block; image-rendering: pixelated; }
 .dessin.paysage .oeuvre { flex: none; gap: 4px; }
 .dessin.paysage .bas { flex: 1; display: grid; grid-template-columns: 1fr 16px 1fr; margin-top: 10px; min-height: 0; }
 .dessin.paysage .consigne { font-size: 30px; line-height: 27px; }
-/* lumière du jour */
+/* lumière du jour : rien de gris, aucune trame (elles gardent la trace de l'écran d'avant) */
 .lumiere { flex: 1; display: flex; flex-direction: column; }
-.frise { display: block; }
-.frise text.h { font-family: 'Silkscreen'; font-size: 16px; }
-.legendes { display: flex; gap: 18px; margin: 4px 0 8px; align-items: center; }
-.leg { display: flex; align-items: center; gap: 6px; }
-.leg i { width: 20px; height: 12px; border: 1px solid var(--encre); display: inline-block; }
-.m-clair { background-image: repeating-conic-gradient(var(--encre) 0 25%, transparent 0 100%); background-size: 4px 4px; }
-.m-moyen { background-image: repeating-conic-gradient(var(--encre) 0 25%, transparent 0 50%); background-size: 2px 2px; }
-.m-dense { background: #333; }
-.cartes { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.carte { border-top: 4px double var(--encre); padding-top: 6px; }
-.carte .entete { margin-bottom: 2px; }
-.carte .ligne { display: flex; justify-content: space-between; align-items: baseline; height: 46px; white-space: nowrap; }
-.carte .verdict { white-space: nowrap; }
-.carte .detail { margin-top: 4px; }
-.carte.passe { opacity: 0.45; }
+.lumiere .haut { flex: 1; display: flex; gap: 20px; min-height: 0; }
+.lumiere .heros { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.lumiere .heros .entete { justify-content: flex-start; gap: 16px; white-space: nowrap; }
+.lumiere .grand { font-size: 88px; line-height: 88px; margin: 2px 0 0; white-space: nowrap; }
+.lumiere .ligne { display: flex; align-items: baseline; gap: 14px; height: 40px; white-space: nowrap; }
+.lumiere .ligne .s16 { width: 76px; }
+.lumiere .phrase { margin-top: 2px; line-height: 24px; }
+.lumiere .rose { width: 250px; flex: none; display: flex; flex-direction: column; align-items: center; margin-top: -6px; }
+.lumiere .rose .cap { font-family: 'Silkscreen'; font-weight: 700; font-size: 16px; }
+.lumiere .nuages { border-top: 4px double var(--encre); padding-top: 4px; margin-top: 2px; }
+.lumiere .jauges { display: grid; grid-template-columns: 196px 180px 56px 1fr; gap: 2px 10px; align-items: center; margin-top: 2px; white-space: nowrap; line-height: 20px; }
+.lumiere .jauges .pc { text-align: right; }
+.lumiere .jauges .role { padding-left: 6px; }
+.lumiere .barre-pleine { flex: 1; height: 12px; border: 2px solid var(--encre); }
+.lumiere .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+.lumiere .autre { display: flex; gap: 14px; align-items: baseline; border-top: 2px solid var(--encre); padding-top: 4px; margin-top: 6px; }
 /* livre à lire */
 .livre { flex: 1; display: grid; grid-template-columns: 300px 16px 1fr; min-height: 0; }
 .livre .couv { display: flex; align-items: center; justify-content: center; }
