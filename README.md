@@ -38,6 +38,7 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Livre à lire | un livre de ma bibliothèque que je n'ai pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
 | Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
 | Citation | le matin la citation du jour de Wikiquote si elle existe, sinon une de la banque | [`citations.json`](citations.json) | rien |
+| Avions | les avions qui passent autour de chez moi : d'où ils viennent, où ils vont, compagnie, altitude, vitesse, radar vu du dessus, 4 vols suivants ; un trajet incohérent avec la position est écarté | [adsb.lol](https://www.adsb.lol/), [adsbdb](https://www.adsbdb.com/) | rien |
 | Article insolite | un article de la page « Articles insolites » de Wikipédia, sa ligne de présentation, son résumé et son image | [`insolites.json`](insolites.json), API Wikipédia | rien |
 | Fin de journée | à partir de 17 h : météo de demain, premier rendez-vous, poubelles à sortir | Open-Meteo, Google Agenda | idem Agenda |
 | Demain | la nuit, les rendez-vous du lendemain | Google Agenda | idem Agenda |
@@ -100,8 +101,8 @@ Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, p
 | Plage | Écrans (minutes) |
 |---|---|
 | Matin, 06:30 à 09:00 | Météo 6, Stations 6, Agenda 6, Lumière 5, Courrier 4, Air 3, Mot 4, Citation 3 |
-| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Activité 4, Air 4, Stations 6, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3, Insolite 4, Fin de journée 5 (dès 17 h) |
-| Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Fin de journée 4, Dessin 8, Livre 6, Insolite 5, Mot 4, Citation 3 |
+| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Activité 4, Air 4, Stations 6, Avions 4, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3, Insolite 4, Fin de journée 5 (dès 17 h) |
+| Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Fin de journée 4, Avions 4, Dessin 8, Livre 6, Insolite 5, Mot 4, Citation 3 |
 | Nuit, 23:00 à 06:30 | Demain, fixe |
 
 Trois écrans n'entrent dans le cycle que s'ils ont quelque chose à dire : **Courrier** s'il y a un mail important non lu ; **Stations** dans ses créneaux (`stations_creneaux`) et dans les 2 h avant un rendez-vous d'un agenda de sorties, puis fixe dans les 45 dernières minutes ; **Lumière** autour de l'heure bleue et de l'heure dorée. Flash complet à chaque changement d'écran, partiel pour la mise à jour d'un écran qui reste (les minutes du tram).
@@ -139,6 +140,7 @@ La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs
 - **E-ink** : polices pixel seulement à leurs tailles natives (VT323 25, 50, 75… ; Silkscreen 16, 24), sans lissage ; aucun texte gris sur une dalle Pearl ; images au contraste étiré puis tramées en 16 gris (Floyd-Steinberg), l'arrondi simple fait des bandes. Mesures et sources : [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md).
 - **Dessins pour l'e-ink** : l'API ouverte du Cleveland Museum renvoie aussi des aquarelles et des feuilles pâles ; `affichable()` garde les techniques graphiques (graphite, craie, plume, fusain, lavis), écarte la couleur, les rectos-versos, les formats extrêmes, et exige une encre entre 4 et 45 % de la surface (seuils calés sur 20 dessins).
 - **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister, ou ne jamais exister (je prends alors celui du même jour une année passée, comme pour le second mot de la journée) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
+- **Avions** : adsbdb donne la route habituelle d'un indicatif, pas celle du vol du jour ; j'ai vu un Hurghada-Nantes cap au nord-est au-dessus de Lille. Je vérifie que l'avion est sur le chemin et vole vers sa destination, sinon j'affiche « trajet inconnu ».
 - **Google** : un client OAuth en mode « Test » voit ses jetons expirer en 7 jours ; `verifier.py` fait un vrai échange de jeton pour le voir venir.
 
 ## Fichiers
