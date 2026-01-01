@@ -36,6 +36,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -58,19 +59,22 @@ MODELES = {"k4": (600, 800), "k5": (600, 800), "touch": (600, 800), "pw1": (758,
 PLAYLIST = {
     "matin": ("06:30", "09:00", [("meteo", 360), ("stations", 360), ("agenda", 360), ("lumiere", 300), ("courrier", 240),
                                  ("air", 180), ("mot", 240), ("citation", 180)]),
-    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("air", 240), ("stations", 360),
-                                   ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240), ("citation", 180)]),
-    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("dessin", 480), ("livre", 360),
-                                  ("mot", 240), ("citation", 180)]),
+    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("activite", 240), ("air", 240),
+                                   ("stations", 360), ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240),
+                                   ("citation", 180), ("insolite", 240), ("fin", 300)]),
+    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("fin", 240), ("dessin", 480), ("livre", 360),
+                                  ("insolite", 300), ("mot", 240), ("citation", 180)]),
     "nuit": ("23:00", "06:30", [("demain", 1800)]),
 }
 IMMINENT = 45  # minutes avant une sortie : l'écran Stations reste affiché, la rotation s'arrête
-PLEIN = ("meteo", "air", "citation", "stations", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
+PLEIN = ("meteo", "air", "activite", "citation", "insolite", "fin", "stations", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
 # Flash complet en arrivant sur un écran (les écrans conditionnels changent l'enchaînement : une disposition peut en
 # suivre une autre n'importe où) ; partiel pour la mise à jour d'un écran qui reste.
-COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation", "demain")
-NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation",
-              "demain"]  # ordre des boutons de la liseuse
+COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "lumiere", "dessin", "livre", "mot", "citation",
+             "insolite", "fin", "demain")
+NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "lumiere", "dessin", "livre", "mot", "citation",
+              "insolite", "fin", "demain"]  # ordre des boutons de la liseuse
+HEURE_FIN = 17  # à partir de cette heure, l'écran Fin de journée entre dans le cycle
 RETIRAGE = 13  # heure du second tirage du jour : dessin, livre, mot et citation changent pour l'après-midi
 AGENDAS = CONFIG.get("agendas", {"primary": "Agenda"})  # calendarId → libellé
 SORTIES = tuple(CONFIG.get("agendas_sorties", []))  # agendas où un rendez-vous veut dire sortir (écran Stations)
@@ -113,10 +117,13 @@ ILEVIA_GTFS = "https://media.ilevia.fr/opendata/gtfs.zip"
 # direction_id voulue ; direct : [nom_station, sens_ligne] du temps réel ilévia (le métro n'y est pas) ; vers : où
 # va ce sens, en clair (« LILLE »).
 STATIONS = CONFIG.get("stations", [])
+# Écran Activité : {"chaine": id YouTube, "instagram": id du compte, "ventes": data source Notion, "listes": [ids Brevo]}
+ACTIVITE = CONFIG.get("activite", {})
 SOCIAL_DAILY = CONFIG.get("abonnes", "")  # table n8n des relevés quotidiens d'abonnés (API data-tables)
 # Écrans sans réglage, ou retirés dans la config : hors des boutons et de la rotation.
 INACTIFS = set(CONFIG.get("ecrans_retires", [])) | {e for e, manque in (
-    ("stations", not STATIONS), ("livre", not BIBLIOTHEQUE), ("reseaux", not SOCIAL_DAILY)) if manque}
+    ("stations", not STATIONS), ("livre", not BIBLIOTHEQUE), ("reseaux", not SOCIAL_DAILY),
+    ("activite", not any(ACTIVITE.values()))) if manque}
 NAVIGATION = [e for e in NAVIGATION if e not in INACTIFS]
 RESEAUX = {"youtube": "YOUTUBE", "instagram": "INSTAGRAM", "facebook": "FACEBOOK", "tiktok": "TIKTOK", "threads": "THREADS"}
 JOURS = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"]
@@ -451,6 +458,79 @@ def air(maintenant):
     return appel(f"{AIR}?{q}")["hourly"]
 
 
+def duree_secondes(iso):
+    """Secondes d'une durée ISO 8601 (PT12M56S), celle de l'API YouTube."""
+    m = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso)
+    return sum(int(x or 0) * k for x, k in zip(m.groups(), (3600, 60, 1))) if m else 0
+
+
+def derniere_video(maintenant):
+    """La dernière vidéo longue de la chaîne (3 min ou plus : les reels republiés sur YouTube ne comptent pas)."""
+    if not ACTIVITE.get("chaine"):
+        return {"erreur": "non réglé"}
+    yt = "https://www.googleapis.com/youtube/v3/"
+    cle = lire_env("GOOGLE_API_KEY")
+    q = urllib.parse.urlencode({"part": "contentDetails", "playlistId": "UU" + ACTIVITE["chaine"][2:], "maxResults": 15, "key": cle})
+    ids = [x["contentDetails"]["videoId"] for x in appel(f"{yt}playlistItems?{q}")["items"]]
+    q = urllib.parse.urlencode({"part": "statistics,snippet,contentDetails", "id": ",".join(ids), "key": cle})
+    longues = [v for v in appel(f"{yt}videos?{q}")["items"] if duree_secondes(v["contentDetails"]["duration"]) >= 180]
+    v = max(longues, key=lambda x: x["snippet"]["publishedAt"])
+    s = v["statistics"]
+    return {"titre": latin(v["snippet"]["title"]), "date": v["snippet"]["publishedAt"][:10], "vues": int(s.get("viewCount", 0)),
+            "likes": int(s["likeCount"]) if "likeCount" in s else None, "commentaires": int(s.get("commentCount", 0))}
+
+
+def dernier_reel(maintenant):
+    """Le dernier reel Instagram et ses vues (API Graph, jeton Meta)."""
+    if not ACTIVITE.get("instagram"):
+        return {"erreur": "non réglé"}
+    graph = "https://graph.facebook.com/v23.0/"
+    jeton = lire_env("META_SYSTEM_USER_TOKEN")
+    q = urllib.parse.urlencode({"fields": "media_product_type,timestamp,caption,like_count,comments_count", "limit": 25, "access_token": jeton})
+    r = next(x for x in appel(f"{graph}{ACTIVITE['instagram']}/media?{q}")["data"] if x.get("media_product_type") == "REELS")
+    q = urllib.parse.urlencode({"metric": "views", "access_token": jeton})
+    vues = appel(f"{graph}{r['id']}/insights?{q}")["data"][0]["values"][0]["value"]
+    lignes = [latin(x).strip() for x in (r.get("caption") or "").splitlines()]
+    return {"titre": next((x for x in lignes if x), "(sans légende)"), "date": r["timestamp"][:10], "vues": vues,
+            "likes": r.get("like_count", 0), "commentaires": r.get("comments_count", 0)}
+
+
+def periodes(maintenant):
+    """(aujourd'hui, il y a 6 jours, le 1er du mois) en AAAA-MM-JJ : les trois colonnes de l'écran Activité."""
+    return f"{maintenant:%Y-%m-%d}", f"{maintenant - dt.timedelta(days=6):%Y-%m-%d}", f"{maintenant:%Y-%m}-01"
+
+
+def ventes_recentes(maintenant):
+    """Ventes par période, remboursements exclus. Base Notion : Date, Prix final, Remboursement."""
+    if not ACTIVITE.get("ventes"):
+        return {"erreur": "non réglé"}
+    bornes = periodes(maintenant)
+    corps, lignes = {"page_size": 100, "filter": {"property": "Date", "date": {"on_or_after": min(bornes)}}}, []
+    while True:
+        r = notion(f"data_sources/{ACTIVITE['ventes']}/query", corps)
+        lignes += [(propriete(x["properties"], "Date")[:10], float(propriete(x["properties"], "Prix final") or 0))
+                   for x in r["results"] if not propriete(x["properties"], "Remboursement")]
+        if not r.get("has_more"):  # jamais la première page seule : une lecture partielle passerait pour un mois creux
+            break
+        corps["start_cursor"] = r["next_cursor"]
+    return {"periodes": [[sum(1 for d, _ in lignes if d >= b), sum(p for d, p in lignes if d >= b)] for b in bornes]}
+
+
+def inscrits_recents(maintenant):
+    """Nouveaux contacts Brevo par période sur les listes réglées, dédupliqués par compte (aucun e-mail gardé)."""
+    if not ACTIVITE.get("listes"):
+        return {"erreur": "non réglé"}
+    bornes, listes, dates, decalage = periodes(maintenant), set(ACTIVITE["listes"]), [], 0
+    while True:
+        q = urllib.parse.urlencode({"limit": 500, "offset": decalage, "sort": "desc", "createdSince": f"{min(bornes)}T00:00:00.000Z"})
+        lot = appel(f"https://api.brevo.com/v3/contacts?{q}", {"api-key": lire_env("BREVO_API_KEY"), "accept": "application/json"})["contacts"]
+        dates += [c["createdAt"][:10] for c in lot if listes & set(c.get("listIds", []))]
+        if len(lot) < 500:
+            break
+        decalage += 500
+    return {"periodes": [sum(1 for d in dates if d >= b) for b in bornes]}
+
+
 def citation(maintenant):
     """Le matin, la citation du jour de Wikiquote si elle existe pour cette date ; sinon, et l'après-midi, une de la
     banque choisie d'après le tirage du moment."""
@@ -633,7 +713,7 @@ def ecran(maintenant, panneau, contenu, meteo_html=None, importants=0):
     points = "".join(f'<i class="{"ici" if p == panneau else ""}"></i>' for p in NAVIGATION)
     quoi = POUBELLES.get(maintenant.weekday())  # la veille du ramassage, toute la journée
     rappel = f'<span class="badge rappel">{icone("poubelle", 16)}<span class="s16 gras">{quoi}</span></span>' if quoi else ""
-    # Place comptée (12 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
+    # Place comptée (15 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
     jours, mois = (JOURS_COURTS, MOIS_COURTS) if rappel and badge else (JOURS, MOIS_COURTS) if rappel else (JOURS, MOIS)
     if badge and not rappel and len(f"{JOURS[maintenant.weekday()]} {maintenant.day} {MOIS[maintenant.month - 1]}") > 18:
         mois = MOIS_COURTS
@@ -1002,6 +1082,36 @@ def livre_du_jour(maintenant, sortie):
     return res
 
 
+def article_insolite(maintenant, sortie):
+    """Un article de la page Wikipédia:Articles insolites (insolites.json), avec son résumé et son image."""
+    cache = sortie / "cache"
+    fiche = cache / f"insolite-{tirage(maintenant)}.json"
+    if fiche.exists():
+        return json.loads(fiche.read_text(encoding="utf-8"))
+    banque = json.loads((ICI / "insolites.json").read_text(encoding="utf-8"))
+    for n in range(6):  # page renommée, homonymie : le suivant
+        a = banque[(graine(maintenant, "insolite") + n) % len(banque)]
+        titre = urllib.parse.quote(a["titre"].replace(" ", "_"), safe="")
+        try:
+            r = json.loads(telecharger(f"https://fr.wikipedia.org/api/rest_v1/page/summary/{titre}", UA_WIKI))
+        except urllib.error.HTTPError:
+            continue
+        if r.get("type") == "standard" and r.get("extract"):
+            break
+    else:
+        return {"erreur": "Article insolite introuvable"}
+    res = {**a, "titre": r.get("title") or a["titre"], "resume": r["extract"]}
+    vignette = (r.get("thumbnail") or {}).get("source", "")
+    if vignette and not vignette.lower().split("?")[0].endswith(".svg.png"):
+        photo = cache / f"insolite-{tirage(maintenant)}.img"
+        photo.write_bytes(telecharger(vignette, UA_WIKI, timeout=20))
+        res["image"] = str(photo)
+        garder_du_jour(cache, "insolite-2*.img", photo.name)
+    ecrire(fiche, json.dumps(res, ensure_ascii=False))
+    garder_du_jour(cache, "insolite-2*.json", fiche.name)
+    return res
+
+
 def mot_du_jour(maintenant, sortie):
     """Le matin, le mot du jour du Wiktionnaire. Il arrive qu'il n'ait pas de page (« néphritique », 01/01/2026) : on
     prend alors celui du même jour les années d'avant, jamais vu à l'écran, plutôt que celui de la veille, qui n'est
@@ -1271,6 +1381,75 @@ def ecran_air(maintenant, a):
     return f'<section class="lumiere air"><div class="haut">{heros}{courbe}</div>{polluants}{bas}</section>'
 
 
+def bloc_media(nom, x, maintenant):
+    """Colonne de l'écran Activité : une publication, ses vues en gros."""
+    if "erreur" in x:
+        return f'<div class="media"><div class="entete"><span class="tag">{nom}</span></div><p>{esc(x["erreur"])}</p></div>'
+    age = (maintenant.date() - dt.date.fromisoformat(x["date"])).days
+    quand = "AUJOURD'HUI" if age <= 0 else "HIER" if age == 1 else f"IL Y A {age} JOURS"
+    return (f'<div class="media"><div class="entete"><span class="tag">{nom}</span><span class="droite s16">{quand}</span></div>'
+            f'<div class="titre">{esc(x["titre"])}</div><div class="vues">{nombre(x["vues"])}</div><div class="s16 gras">VUES</div>'
+            f'<div class="reactions">{"" if x["likes"] is None else nombre(x["likes"]) + " likes · "}{nombre(x["commentaires"])} commentaires</div></div>')
+
+
+def ecran_activite(maintenant, video, reel, ventes, inscrits):
+    def cases(p, fmt):
+        return "".join(f'<div class="v50">{fmt(v)}</div>' for v in p) if p else '<div class="v50">–</div>' * 3
+    plur = lambda n: f'{n} VENTE{"S" if n > 1 else ""}'  # noqa: E731
+    v = ventes.get("periodes")
+    euros = "".join(f'<div><span class="v50">{nombre(round(e))} €</span> <span class="s16">{plur(n)}</span></div>' for n, e in v) if v else '<div class="v50">–</div>' * 3
+    table = (f'<div class="chiffres"><span></span><span class="s16 gras">AUJOURD\'HUI</span><span class="s16 gras">7 JOURS</span>'
+             f'<span class="s16 gras">CE MOIS</span><span class="s16 gras">VENTES</span>{euros}'
+             f'<span class="s16 gras">INSCRITS</span>{cases(inscrits.get("periodes"), nombre)}</div>')
+    return (f'<section class="activite"><div class="deux">{bloc_media("YOUTUBE", video, maintenant)}<div class="sep"></div>'
+            f'{bloc_media("REEL", reel, maintenant)}</div><div class="double"></div>{table}</section>')
+
+
+def ecran_fin(maintenant, m, a):
+    lendemain = maintenant + dt.timedelta(days=1)
+    date = f'<span class="s16">{JOURS[lendemain.weekday()]} {lendemain.day} {MOIS[lendemain.month - 1]}</span>'
+    if "erreur" in m or "erreur" in a:
+        return entete("FIN DE JOURNÉE", date) + f'<p>{esc(m.get("erreur") or a.get("erreur"))}</p>'
+    j = m["jours"][1]
+    ciel = (f'<div class="ciel">{icone(j["icone"], 96)}<div class="temp">{j["min"]}° / {j["max"]}°</div>'
+            f'<div>pluie {j["pluie"]} %</div></div>')
+    liste = a["jours"][1]
+    horaires = [x for x in liste if x["heure"] not in ("JOUR", "suite")]
+    if horaires:
+        x = horaires[0]
+        lieu = f'<div class="lieu">{esc(x["lieu"])}</div>' if x["lieu"] else ""
+        autres = len(liste) - 1
+        suite = f'<div class="s16 gras">PUIS {autres} AUTRE{"S" if autres > 1 else ""}</div>' if autres else ""
+        rendez_vous = (f'<div class="s16 gras">PREMIER RENDEZ-VOUS</div><div class="heure">{esc(x["heure"])}</div>'
+                       f'<div class="quoi">{esc(x["titre"])}</div>{lieu}{suite}')
+    elif liste:
+        rendez_vous = f'<div class="s16 gras">TOUTE LA JOURNÉE</div><div class="quoi">{esc(liste[0]["titre"])}</div>'
+    else:
+        rendez_vous = '<div class="s16 gras">PREMIER RENDEZ-VOUS</div><div class="quoi">Rien de prévu</div>'
+    quoi = POUBELLES.get(maintenant.weekday())
+    rappel = f'<div class="rappel-fin"><span class="tag">À SORTIR CE SOIR : {esc(quoi)}</span></div>' if quoi else ""
+    return (f'<section class="fin">{entete("FIN DE JOURNÉE", date)}<div class="deux">{ciel}<div class="sep"></div>'
+            f'<div class="rv">{rendez_vous}</div></div>{rappel}</section>')
+
+
+def ecran_insolite(maintenant, b, sortie):
+    if "erreur" in b:
+        return entete("ARTICLE INSOLITE") + f'<p>{esc(b["erreur"])}</p>'
+    image = image_tramee(b["image"], "insolite", (300, 470), sortie) if b.get("image") and Path(b["image"]).exists() else ""
+    titre, resume = b["titre"], b["resume"]
+    if len(resume) > 520:
+        coupe = resume[:520].rfind(". ")
+        resume = resume[:coupe + 1] if coupe > 200 else resume[:520] + "…"
+    taille = 75 if len(titre) <= 18 else 50 if len(titre) <= 60 else 40
+    texte = (f'<div class="txt">{entete("ARTICLE INSOLITE")}'
+             f'<div class="titre" style="font-size:{taille}px">{esc(titre)}</div><div class="accroche">{esc(b["accroche"])}</div>'
+             f'<div class="double"></div><div class="resume">{esc(resume)}</div>'
+             f'<div class="pied s16">WIKIPÉDIA, ARTICLES INSOLITES · CC BY-SA</div></div>')
+    if not image:
+        return f'<section class="livre insolite sans-image">{texte}</section>'
+    return f'<section class="livre insolite"><div class="couv">{image}</div><div class="sep"></div>{texte}</section>'
+
+
 def ecran_livre(maintenant, b, sortie):
     if "erreur" in b:
         return entete("À LIRE") + f'<p>{esc(b["erreur"])}</p>'
@@ -1433,6 +1612,11 @@ def main():
         "reseaux": lambda: en_cache(args.sortie, "reseaux", ttl(10800), reseaux, maintenant),
         "air": lambda: en_cache(args.sortie, "air", ttl(3600), air, maintenant),
         "citation": lambda: sur(citation, maintenant),
+        "video": lambda: en_cache(args.sortie, "video", ttl(1800), derniere_video, maintenant),
+        "reel": lambda: en_cache(args.sortie, "reel", ttl(1800), dernier_reel, maintenant),
+        "ventes": lambda: en_cache(args.sortie, "ventes", ttl(600), ventes_recentes, maintenant),
+        "inscrits": lambda: en_cache(args.sortie, "inscrits", ttl(1800), inscrits_recents, maintenant),
+        "insolite": lambda: en_cache(args.sortie, "insolite", ttl(600), article_insolite, maintenant, args.sortie),
         "concepts": lambda: en_cache(args.sortie, "concepts", ttl(7 * 86400), concepts, maintenant),
         "livre": lambda: en_cache(args.sortie, "livre", ttl(600), livre_du_jour, maintenant, args.sortie),
         "mot": lambda: en_cache(args.sortie, "mot", ttl(600), mot_du_jour, maintenant, args.sortie),
@@ -1454,13 +1638,17 @@ def main():
     soleil_du_jour = course_du_soleil(maintenant)
     raison, imminent = raison_stations(maintenant, sources["agenda"]())
     sauf = (("courrier",) if c.get("importants") == 0 else ()) + (() if raison else ("stations",)) + \
-        (() if heure_photo(maintenant, soleil_du_jour) else ("lumiere",))
+        (() if heure_photo(maintenant, soleil_du_jour) else ("lumiere",)) + \
+        (("fin",) if maintenant.hour < HEURE_FIN else ())
     plage, actuel, rang = plage_du_moment(maintenant, sauf=sauf + tuple(INACTIFS))
     if imminent and plage != "nuit":
         actuel = "stations"
     fabriques = {
         "meteo": lambda: ecran_meteo(maintenant, m, age),
         "air": lambda: ecran_air(maintenant, sources["air"]()),
+        "activite": lambda: ecran_activite(maintenant, *(sources[x]() for x in ("video", "reel", "ventes", "inscrits"))),
+        "insolite": lambda: ecran_insolite(maintenant, sources["insolite"](), args.sortie),
+        "fin": lambda: ecran_fin(maintenant, m, sources["agenda"]()),
         "agenda": lambda: panneau_agenda(maintenant, sources["agenda"]()),
         "courrier": lambda: panneau_courrier(maintenant, c),
         "reseaux": lambda: panneau_reseaux(maintenant, sources["reseaux"]()),
