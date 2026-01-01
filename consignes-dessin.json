@@ -1,0 +1,984 @@
+{
+ "genere": "2026-01-01",
+ "corpus": "dessin-livres",
+ "concepts": [
+  {
+   "concept": "Valeur d'une couleur",
+   "definition": "Toute couleur a une valeur ; savoir la juger est le pont entre le dessin en noir et blanc et la peinture.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Colorie 6 carrés de couleurs vives, puis refais chacun dessous au crayon, dans le gris de même valeur.",
+     "duree_min": 10,
+     "materiel": "crayons de couleur, crayon 2B, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 102
+     }
+    },
+    {
+     "texte": "Trace une échelle de 8 carrés du blanc au noir, puis trouve celui qui égale le ton le plus sombre du dessin du jour.",
+     "duree_min": 15,
+     "materiel": "crayons 2H, 2B et 6B, règle, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 101
+     }
+    },
+    {
+     "texte": "Éclaire un objet jaune et un rouge de la même façon : le côté lumineux du rouge est bien plus sombre que celui du jaune.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, objets jaune et rouge, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Render: The Fundamentals of Light, Shadow and Reflectivity",
+      "page": 137
+     }
+    },
+    {
+     "texte": "Photographie un objet coloré, passe la photo en noir et blanc, puis dessine les gris que tu y vois.",
+     "duree_min": 20,
+     "materiel": "téléphone, crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Render: The Fundamentals of Light, Shadow and Reflectivity",
+      "page": 137
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Étude de valeurs",
+   "definition": "Reproduire une référence en 2-3 valeurs : l'exercice qui entraîne formes, proportions et lumière d'un coup.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Dessine un objet avec 3 tons seulement : le blanc du papier, un gris moyen et un noir.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, papier blanc",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 48
+     }
+    },
+    {
+     "texte": "Recopie le dessin du jour en 3 valeurs seulement : papier, gris moyen, noir.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier blanc",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 48
+     }
+    },
+    {
+     "texte": "Dessine lumières et ombres d'un objet comme des pays sur une carte, en 3 tons, sans aucun détail.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 127
+     }
+    },
+    {
+     "texte": "Teinte ta feuille au fusain gris, puis dessine un objet en effaçant les lumières avec une gomme mie de pain.",
+     "duree_min": 30,
+     "materiel": "fusain, gomme mie de pain, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 120
+     }
+    }
+   ]
+  },
+  {
+   "concept": "« Value does the work, color gets the credit »",
+   "definition": "Un tableau tient si les valeurs sont justes, même avec des couleurs fausses — jamais l'inverse.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Dessine un objet en gris et note sa couleur future : un bleu vif ne supporte pas un côté lumineux trop clair.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Render: The Fundamentals of Light, Shadow and Reflectivity",
+      "page": 136
+     }
+    },
+    {
+     "texte": "Dessine un objet blanc dans le coin sombre d'une pièce : donne-lui un gris, pas le blanc du papier.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 102
+     }
+    },
+    {
+     "texte": "Fais une échelle de gris numérotée, puis dessine un objet coloré en donnant à chaque couleur le numéro de son gris.",
+     "duree_min": 25,
+     "materiel": "crayons de couleur, crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "John Ruskin — The Elements of Drawing",
+      "page": 59
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, repère une zone détaillée et refais-la en 2 grands aplats de gris, sans détail ni texture.",
+     "duree_min": 15,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 102
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Plisser les yeux (squint)",
+   "definition": "Supprime détails et couleur, ne laisse que les grandes masses de valeurs. L'outil d'observation n°1.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Plisse les yeux sur un arbre ou un bâtiment et dessine seulement les quelques taches sombres qui restent.",
+     "duree_min": 5,
+     "materiel": "crayon 4B, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 178
+     }
+    },
+    {
+     "texte": "Plisse les yeux sur le dessin du jour et trace d'un trait léger la limite entre ses lumières et ses ombres.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Charles Bargue, Jean-Léon Gérôme — Drawing Course",
+      "page": 22
+     }
+    },
+    {
+     "texte": "Dessine un visage en deux tons : plisse les yeux, regroupe toutes les ombres ensemble et toutes les lumières ensemble.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier, modèle ou photo",
+     "niveau": "étude",
+     "source": {
+      "livre": "Steve Huston — Figure Drawing for Artists",
+      "page": 76
+     }
+    },
+    {
+     "texte": "Passe une photo en noir et blanc, plisse les yeux pour voir les écarts de ton, puis dessine-les.",
+     "duree_min": 20,
+     "materiel": "téléphone, crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Render: The Fundamentals of Light, Shadow and Reflectivity",
+      "page": 63
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Valeur locale vs valeur rendue",
+   "definition": "La valeur propre d'une surface vs celle qu'elle prend sous un éclairage donné.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Éclaire un gant noir et un œuf avec la même lampe : dessine-les en gardant le noir plus sombre que l'œuf.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, lampe, gant noir, œuf",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 120
+     }
+    },
+    {
+     "texte": "Dessine un cube blanc éclairé de côté : chaque face prend un gris différent selon son angle vers la lumière.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, boîte blanche, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Charles Bargue, Jean-Léon Gérôme — Drawing Course",
+      "page": 22
+     }
+    },
+    {
+     "texte": "Éclaire un objet sombre près d'un clair : même dans la lumière, le sombre ne dépasse jamais le clair.",
+     "duree_min": 25,
+     "materiel": "crayon 2B, deux objets, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Andrew Loomis — Successful Drawing",
+      "page": 100
+     }
+    },
+    {
+     "texte": "Dans le dessin du jour, compare deux zones de matières différentes et note l'écart de ton qui reste entre elles.",
+     "duree_min": 15,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 121
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Ombre propre vs ombre portée",
+   "definition": "L'ombre du plan qui tourne le dos à la lumière vs celle projetée par un objet qui la bloque.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Dessine une balle éclairée : ombre sur la balle au bord doux, ombre au sol au bord net près de la balle.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, balle, lampe",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Glenn Vilppu — The Vilppu Drawing Manual",
+      "page": 155
+     }
+    },
+    {
+     "texte": "Dessine une sphère : d'abord le croissant d'ombre sur la boule, puis l'ombre qu'elle jette sur le sol.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, balle, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 145
+     }
+    },
+    {
+     "texte": "Éclaire trois objets avec une seule lampe : leurs ombres portées vont dans le même sens, avec la même douceur.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, trois objets, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Andrew Loomis — Successful Drawing",
+      "page": 73
+     }
+    },
+    {
+     "texte": "Dans le dessin du jour, trouve une ombre sur une forme et une ombre portée : redessine leurs bords, doux ou nets.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Glenn Vilppu — The Vilppu Drawing Manual",
+      "page": 155
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Familles de valeurs",
+   "definition": "Regrouper toutes les valeurs en 2-3 familles (lumière / ombre) : la simplification fait la lisibilité.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Range les tons d'une scène en 4 groupes : papier, gris clair, gris foncé, noir. Dessine ces 4 groupes.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 44
+     }
+    },
+    {
+     "texte": "Dessine une sphère éclairée avec 3 familles de tons seulement : lumières, tons moyens, ombres.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, balle, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 85
+     }
+    },
+    {
+     "texte": "Dessine un objet avec une seule valeur pour toute sa lumière et une seule pour toute son ombre.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, objet, lampe",
+     "niveau": "étude",
+     "source": {
+      "livre": "Steve Huston — Figure Drawing for Artists",
+      "page": 74
+     }
+    },
+    {
+     "texte": "Recopie le dessin du jour en 3 familles de gris : chaque zone prend le ton de sa famille, jamais un autre.",
+     "duree_min": 25,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 44
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Z de Van Dyck",
+   "definition": "Le zigzag qui relie les traits du visage : un repère simple pour caler un portrait juste.",
+   "famille_oeuvre": "portrait",
+   "consignes": [
+    {
+     "texte": "Trace un visage de face, puis relie sourcils, nez et bouche en Z pour voir l'inclinaison de la tête.",
+     "duree_min": 5,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": null
+    },
+    {
+     "texte": "Recopie le dessin du jour en commençant par le Z qui relie les grands traits du visage, avant le reste.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": null
+    },
+    {
+     "texte": "Incline la tête devant un miroir : l'axe central et la ligne des yeux restent à angle droit. Trace-les d'abord.",
+     "duree_min": 20,
+     "materiel": "miroir, crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 234
+     }
+    },
+    {
+     "texte": "Dans un miroir, repère le triangle renversé formé par les coins extérieurs des yeux et le bas du nez, puis dessine-le.",
+     "duree_min": 20,
+     "materiel": "miroir, crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 234
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Méthode hybride",
+   "definition": "Block-in à l'œil d'abord, vérification par la mesure ensuite : la justesse sans l'esclavage de la grille.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Dessine un objet en mêlant deux gestes : traits larges et rapides pour les grandes formes, lignes nettes sur les bords.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 249
+     }
+    },
+    {
+     "texte": "Mesure un objet avec ton crayon à bout de bras, puis vérifie chaque point par rapport à ses voisins.",
+     "duree_min": 25,
+     "materiel": "crayon HB, papier, objet",
+     "niveau": "étude",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 65
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, repère ce qui est trait (contours) et ce qui est masse (ombres), puis copie les deux.",
+     "duree_min": 25,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Harold Speed — The Practice and Science of Drawing",
+      "page": 20
+     }
+    },
+    {
+     "texte": "Construis d'abord une enveloppe légère en formes simples, puis redessine par-dessus ce que tu vois vraiment.",
+     "duree_min": 30,
+     "materiel": "crayon HB, gomme, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 21
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Notan",
+   "definition": "Réduire une image à deux valeurs : l'exercice de simplification extrême qui révèle la composition.",
+   "famille_oeuvre": "valeurs",
+   "consignes": [
+    {
+     "texte": "Plisse les yeux sur un arbre ou un bâtiment et dessine-le en noir pur et blanc pur, sans aucun gris.",
+     "duree_min": 10,
+     "materiel": "feutre noir, papier blanc",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 176
+     }
+    },
+    {
+     "texte": "Dessine une nature morte en noir et blanc : tout ce qui est plus sombre qu'un seuil choisi devient noir.",
+     "duree_min": 20,
+     "materiel": "encre ou feutre noir, papier blanc",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 47
+     }
+    },
+    {
+     "texte": "Dessine une corde en boucles en noircissant seulement le fond : la corde reste en blanc pur sur la page.",
+     "duree_min": 30,
+     "materiel": "encre ou feutre noir, papier blanc",
+     "niveau": "étude",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 178
+     }
+    },
+    {
+     "texte": "Recopie le dessin du jour en aplats noirs et blancs, sans gris, puis juge l'équilibre entre les deux.",
+     "duree_min": 20,
+     "materiel": "feutre noir, papier blanc",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 47
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Block-in",
+   "definition": "Poser la structure en lignes droites et grandes masses avant tout détail : tailler la forme comme un sculpteur.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Résume un objet en quelques lignes droites légères qui donnent ses grands angles, sans aucune courbe.",
+     "duree_min": 5,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 61
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, trace une enveloppe de quelques lignes droites, puis découpe-la en grandes formes.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 21
+     }
+    },
+    {
+     "texte": "Dessine aussi la forme du fond qui entoure ton objet, pas seulement l'objet : elle t'aide à bien le placer.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Harold Speed — The Practice and Science of Drawing",
+      "page": 41
+     }
+    },
+    {
+     "texte": "Avant tout détail, mesure largeurs, hauteurs et chevauchements des grandes formes de ton sujet.",
+     "duree_min": 25,
+     "materiel": "crayon HB, papier, modèle ou photo",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 76
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Espaces négatifs",
+   "definition": "Dessiner les vides autour et entre les formes : l'œil triche moins sur ce qu'il ne reconnaît pas.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Dessine une chaise en regardant seulement les espaces vides entre ses barreaux, pas la chaise elle-même.",
+     "duree_min": 10,
+     "materiel": "crayon 2B, chaise, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 155
+     }
+    },
+    {
+     "texte": "Découpe la silhouette d'un objet aux ciseaux, puis dessine le vide autour : les deux contours se valent.",
+     "duree_min": 10,
+     "materiel": "ciseaux, papier, crayon",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Glenn Vilppu — The Vilppu Drawing Manual",
+      "page": 135
+     }
+    },
+    {
+     "texte": "Compare chaque espace vide au précédent : sa largeur, son angle, et jusqu'où il va dans le cadre.",
+     "duree_min": 25,
+     "materiel": "crayon 2B, papier, objet",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 155
+     }
+    },
+    {
+     "texte": "Dans le dessin du jour, repère les formes vides autour du sujet et note laquelle est la plus grande.",
+     "duree_min": 15,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 146
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Sight-size",
+   "definition": "Reporter le sujet à taille identique, référence posée à côté du dessin, pour comparer directement.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Place l'objet et ta feuille côte à côte, recule de 3 fois la hauteur de l'objet et compare-les du regard.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier, objet",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 66
+     }
+    },
+    {
+     "texte": "Dessine un objet à sa taille réelle, en alignant tes traits sur le modèle avec un fil à plomb.",
+     "duree_min": 30,
+     "materiel": "crayon HB, fil lesté, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Charles Bargue, Jean-Léon Gérôme — Drawing Course",
+      "page": 207
+     }
+    },
+    {
+     "texte": "Ne bouge ni le modèle ni la feuille, et reviens toujours regarder depuis la même marque au sol.",
+     "duree_min": 25,
+     "materiel": "crayon HB, ruban adhésif, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 66
+     }
+    },
+    {
+     "texte": "Imprime le dessin du jour à sa taille, pose-le près de ta feuille, recule et compare ta copie à l'original.",
+     "duree_min": 30,
+     "materiel": "impression, crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Charles Bargue, Jean-Léon Gérôme — Drawing Course",
+      "page": 207
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Mesure comparative",
+   "definition": "Choisir une unité sur le sujet (la tête, une largeur) et rapporter toutes les autres dimensions à elle.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Mesure la hauteur d'un objet avec ton crayon, compare-la à sa largeur et note le rapport entre les deux.",
+     "duree_min": 10,
+     "materiel": "crayon HB, objet",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 83
+     }
+    },
+    {
+     "texte": "Bras tendu, un œil fermé : mesure deux distances de ton sujet avec le crayon et compare-les.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Harold Speed — The Practice and Science of Drawing",
+      "page": 37
+     }
+    },
+    {
+     "texte": "Mesure une proportion sur le modèle, mémorise-la, puis refais la même mesure sur ton dessin.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier, modèle",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 172
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, compare deux longueurs au crayon, par exemple tête et torse, puis reproduis leur rapport.",
+     "duree_min": 25,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Juliette Aristides — Classical Drawing Atelier",
+      "page": 65
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Formes primitives (cube, sphère, cylindre)",
+   "definition": "Les trois volumes dont dérivent presque tous les objets dessinables.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Remplis une page de cubes, de cylindres et de sphères, en variant leur taille et leur angle.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Robert Beverly Hale — Drawing Lessons from the Great Masters",
+      "page": 16
+     }
+    },
+    {
+     "texte": "Dessine un cube, arrondis ses arêtes pour en faire un cylindre, puis ferme les bouts pour une sphère.",
+     "duree_min": 15,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Robert Beverly Hale — Drawing Lessons from the Great Masters",
+      "page": 16
+     }
+    },
+    {
+     "texte": "Choisis trois objets de la maison et dessine chacun avec un cube, un cylindre ou une sphère.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Daria Bogdanova — The Drawing Habit",
+      "page": null
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, repère une sphère, un tube et une boîte cachés, et redessine-les en formes simples.",
+     "duree_min": 25,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Steve Huston — Figure Drawing for Artists",
+      "page": 30
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Penser en boîtes",
+   "definition": "Entraîner l'œil à envelopper les objets dans des boîtes pour poser volume et orientation dans l'espace.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Dessine 6 boîtes sous des angles variés : hautes, minces, plates, inclinées.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Glenn Vilppu — The Vilppu Drawing Manual",
+      "page": 36
+     }
+    },
+    {
+     "texte": "Prends un objet de forme irrégulière et dessine d'abord la boîte qui le contient, en perspective.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier, objet",
+     "niveau": "étude",
+     "source": {
+      "livre": "Ernest R. Norling — Perspective Made Easy - A Step-By-Step Method for Learning the Basis of Drawing",
+      "page": 221
+     }
+    },
+    {
+     "texte": "Dessine un bâtiment comme des boîtes empilées, en laissant voir les arêtes cachées par transparence.",
+     "duree_min": 25,
+     "materiel": "crayon HB, carnet",
+     "niveau": "étude",
+     "source": {
+      "livre": "Bert Dodson — Keys to Drawing",
+      "page": 136
+     }
+    },
+    {
+     "texte": "Dans le dessin du jour, choisis un objet et dessine la boîte où il rentre juste.",
+     "duree_min": 15,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Robert Beverly Hale — Drawing Lessons from the Great Masters",
+      "page": 17
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Construction par formes simples",
+   "definition": "Décomposer n'importe quel objet en cercles, ovales, rectangles et triangles avant d'ajouter le moindre détail.",
+   "famille_oeuvre": "construction",
+   "consignes": [
+    {
+     "texte": "Remplace le corps d'un modèle ou d'une photo par une sphère, des tubes et une boîte.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier, photo",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Steve Huston — Figure Drawing for Artists",
+      "page": 30
+     }
+    },
+    {
+     "texte": "Résume une nature morte complexe en grandes masses géométriques simples, avant d'ajouter le moindre détail.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 171
+     }
+    },
+    {
+     "texte": "Construis une figure entière avec des sphères, des boîtes et des cylindres, et garde le volume visible avec tes lignes.",
+     "duree_min": 30,
+     "materiel": "crayon HB, papier, photo",
+     "niveau": "étude",
+     "source": {
+      "livre": "Michael Hampton — Figure Drawing: Design and Invention",
+      "page": 61
+     }
+    },
+    {
+     "texte": "Redessine le dessin du jour avec des formes simples seulement : cube, cylindre ou sphère pour chaque partie.",
+     "duree_min": 25,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Robert Beverly Hale — Drawing Lessons from the Great Masters",
+      "page": 16
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Tenue du crayon",
+   "definition": "Les différentes prises (écriture, overhand) et ce qu'elles permettent : précision, amplitude, légèreté.",
+   "famille_oeuvre": "trait",
+   "consignes": [
+    {
+     "texte": "Tiens le crayon loin de la pointe, entre le pouce et deux doigts, et trace 10 lignes larges et légères.",
+     "duree_min": 5,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 48
+     }
+    },
+    {
+     "texte": "Tiens le crayon près de la pointe, comme pour écrire, et trace 10 contours précis à pression moyenne.",
+     "duree_min": 10,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 259
+     }
+    },
+    {
+     "texte": "Tourne ton crayon dans le sens du geste pour un trait net, contre le geste pour un trait épais et doux.",
+     "duree_min": 15,
+     "materiel": "crayon taillé en biseau, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Steve Huston — Figure Drawing for Artists",
+      "page": 20
+     }
+    },
+    {
+     "texte": "Copie un détail du dessin du jour en changeant ta prise : large pour l'ensemble, près de la pointe pour les bords.",
+     "duree_min": 20,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 48
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Ghosting",
+   "definition": "Répéter le geste à vide au-dessus du papier avant de poser le trait : la précision se joue avant le contact avec la feuille.",
+   "famille_oeuvre": "trait",
+   "consignes": [
+    {
+     "texte": "Fais le geste d'une ligne droite au-dessus du papier, crayon levé, puis pose-le et trace-la d'un coup.",
+     "duree_min": 5,
+     "materiel": "crayon HB, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Draw: Drawing and Sketching Objects and Environments from Your Imagination",
+      "page": 14
+     }
+    },
+    {
+     "texte": "Trace 10 lignes parallèles de même longueur, chacune une seule fois, après l'avoir répétée dans le vide.",
+     "duree_min": 10,
+     "materiel": "stylo ou crayon, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Draw: Drawing and Sketching Objects and Environments from Your Imagination",
+      "page": 14
+     }
+    },
+    {
+     "texte": "Choisis un long contour du dessin du jour, répète son geste dans le vide, puis trace-le d'un seul trait.",
+     "duree_min": 15,
+     "materiel": "crayon HB, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Draw: Drawing and Sketching Objects and Environments from Your Imagination",
+      "page": 14
+     }
+    },
+    {
+     "texte": "Trace une construction légère, efface-la presque, puis dessine le contour net sur cette trace pâle.",
+     "duree_min": 25,
+     "materiel": "crayon HB, gomme, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 253
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Traits fuselés",
+   "definition": "Trait amorcé et terminé en légèreté, tracé d'un seul geste depuis l'épaule ou le coude, jamais du poignet.",
+   "famille_oeuvre": "trait",
+   "consignes": [
+    {
+     "texte": "Trace 10 traits qui partent appuyés et s'effilent en levant peu à peu le crayon, d'un seul mouvement.",
+     "duree_min": 5,
+     "materiel": "crayon 2B, papier",
+     "niveau": "échauffement",
+     "source": null
+    },
+    {
+     "texte": "Dessine deux boîtes qui se chevauchent : le trait de la boîte de devant est plus épais que celui de derrière.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Draw: Drawing and Sketching Objects and Environments from Your Imagination",
+      "page": 100
+     }
+    },
+    {
+     "texte": "Dessine un visage : contour appuyé au front et à la pommette, très léger et flou sous la mâchoire.",
+     "duree_min": 25,
+     "materiel": "crayon 2B, papier, modèle ou photo",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 49
+     }
+    },
+    {
+     "texte": "Dans le dessin du jour, repère un contour appuyé et un léger, puis copie ce passage en variant ta pression.",
+     "duree_min": 20,
+     "materiel": "crayon 2B, papier",
+     "niveau": "étude",
+     "source": {
+      "livre": "Anthony Ryder — The Artist's Complete Guide to Figure Drawing",
+      "page": 48
+     }
+    }
+   ]
+  },
+  {
+   "concept": "Points de fuite",
+   "definition": "1, 2 ou 3 points où convergent les parallèles : la grammaire de base de toute perspective.",
+   "famille_oeuvre": "perspective",
+   "consignes": [
+    {
+     "texte": "Trace une ligne d'horizon et un point de fuite, puis dessine 4 boîtes en reliant chaque coin au point.",
+     "duree_min": 10,
+     "materiel": "crayon HB, règle, papier",
+     "niveau": "échauffement",
+     "source": {
+      "livre": "Scott Robertson, Thomas Bertling — How to Draw: Drawing and Sketching Objects and Environments from Your Imagination",
+      "page": 15
+     }
+    },
+    {
+     "texte": "Dessine ta chambre vue de ton lit en regardant le plafond : toutes les verticales visent un point au-dessus de toi.",
+     "duree_min": 20,
+     "materiel": "crayon HB, carnet",
+     "niveau": "étude",
+     "source": {
+      "livre": "Ernest R. Norling — Perspective Made Easy - A Step-By-Step Method for Learning the Basis of Drawing",
+      "page": 199
+     }
+    },
+    {
+     "texte": "Dessine un bloc de bois avec ses deux points de fuite sur l'horizon, assez éloignés l'un de l'autre.",
+     "duree_min": 25,
+     "materiel": "crayon HB, règle, bloc de bois",
+     "niveau": "étude",
+     "source": {
+      "livre": "Nathan Goldstein — The Art of Responsive Drawing",
+      "page": 140
+     }
+    },
+    {
+     "texte": "Sur le dessin du jour, repère la ligne d'horizon et prolonge deux parallèles jusqu'à leur point de fuite.",
+     "duree_min": 20,
+     "materiel": "crayon HB, règle, impression",
+     "niveau": "étude",
+     "source": {
+      "livre": "Betty Edwards — Drawing on the Right Side of the Brain",
+      "page": 169
+     }
+    }
+   ]
+  }
+ ]
+}

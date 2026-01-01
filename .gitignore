@@ -1,0 +1,11 @@
+# réglages et clés propres à chaque installation : jamais dans git
+config.json
+.env
+.env.*
+!.env.exemple
+# sorties
+demo/
+__pycache__/
+*.pyc
+.DS_Store
+._*

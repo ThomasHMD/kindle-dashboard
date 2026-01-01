@@ -1,0 +1,11 @@
+{
+  "items": [
+    {"name": "Kindle-dashboard", "priority": 0, "items": [
+      {"name": "Démarrer le dashboard", "priority": 1, "action": "/bin/sh /mnt/us/dashboard/demarrer.sh"},
+      {"name": "Tester l'affichage", "priority": 2, "action": "/bin/sh /mnt/us/dashboard/tester.sh"},
+      {"name": "Arrêter le dashboard", "priority": 3, "action": "/bin/sh /mnt/us/dashboard/arreter.sh"},
+      {"name": "Démarrage automatique : retirer", "priority": 4, "action": "/bin/sh /mnt/us/dashboard/demarrage-auto.sh retirer"},
+      {"name": "Démarrage automatique : installer", "priority": 5, "action": "/bin/sh /mnt/us/dashboard/demarrage-auto.sh installer"}
+    ]}
+  ]
+}
