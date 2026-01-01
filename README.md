@@ -31,7 +31,7 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Courrier | mails non lus que Gmail marque « Important », écran sauté s'il n'y en a pas | Gmail, lecture seule | idem |
 | Abonnés | abonnés par réseau, gain par jour sur 30 jours | une table [n8n](https://n8n.io/) remplie chaque jour par un workflow | `N8N_API_KEY`, facultatif |
 | Mes stations | 3 prochains départs, direction, premier et dernier départ du jour, premier et dernier retour | ilévia (Lille) : temps réel et GTFS | rien |
-| Lumière du jour | heure bleue, heure dorée, coucher « prometteur » ou « bouché » d'après les nuages par étage | calcul local (formules NOAA) et Open-Meteo | rien |
+| Lumière du jour | prochain moment photo (ce matin, ce soir ou demain matin) et son verdict (net, prometteur, moyen, bouché, pluie), heures bleue et dorée, boussole de la course du soleil, part du ciel couvert par étage de nuages pendant l'heure dorée, chaque étage expliqué à l'écran | calcul local (formules NOAA) et Open-Meteo | rien |
 | Dessin du jour | un concept, une consigne de 10 à 30 min, un dessin ancien du domaine public | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | rien (Notion, facultatif) |
 | Livre à lire | un livre de sa bibliothèque pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
 | Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
