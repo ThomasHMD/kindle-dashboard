@@ -1,6 +1,6 @@
 # Kindle dashboard
 
-**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, qualité de l'air, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation.**
+**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, qualité de l'air, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation, article insolite de Wikipédia, récap de fin de journée, et les chiffres de mon activité.**
 
 Mon Mac fabrique les images, la liseuse ne fait que les afficher. Chaque minute, un script rassemble les données, remplit une page HTML, la photographie avec Chromium à la taille exacte de la dalle et la passe en 16 niveaux de gris. La liseuse, jailbreakée et branchée sur un chargeur, lit l'état du Mac en wifi toutes les 20 secondes et ne télécharge l'écran que s'il a changé. Style néo-rétro : polices pixel à leurs tailles natives, titres inversés, trames, aucun texte gris.
 
@@ -31,12 +31,15 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Agenda | rendez-vous d'aujourd'hui et de demain, passés retirés | Google Agenda, lecture seule | un client OAuth, `autoriser.py` |
 | Courrier | mails non lus que Gmail marque « Important », écran sauté s'il n'y en a pas | Gmail, lecture seule | idem |
 | Abonnés | abonnés par réseau, gain par jour sur 30 jours | une table [n8n](https://n8n.io/) remplie chaque jour par un workflow | `N8N_API_KEY`, facultatif |
+| Mon activité | dernière vidéo YouTube longue et dernier reel avec leurs vues ; ventes et nouveaux inscrits du jour, sur 7 jours et du mois | YouTube, API Instagram, une base Notion, Brevo | les clés de chaque source, facultatif, voir `activite` |
 | Mes stations | 3 prochains départs, direction, premier et dernier départ du jour, premier et dernier retour | ilévia (Lille) : temps réel et GTFS | rien |
 | Lumière du jour | prochain moment photo (ce matin, ce soir ou demain matin) et son verdict (net, prometteur, moyen, bouché, pluie), heures bleue et dorée, boussole de la course du soleil, part du ciel couvert par étage de nuages pendant l'heure dorée, chaque étage expliqué à l'écran | calcul local (formules NOAA) et Open-Meteo | rien |
 | Dessin du jour | un concept, une consigne de 10 à 30 min, un dessin ancien du domaine public | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | rien (Notion, facultatif) |
 | Livre à lire | un livre de ma bibliothèque que je n'ai pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
 | Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
 | Citation | le matin la citation du jour de Wikiquote si elle existe, sinon une de la banque | [`citations.json`](citations.json) | rien |
+| Article insolite | un article de la page « Articles insolites » de Wikipédia, sa ligne de présentation, son résumé et son image | [`insolites.json`](insolites.json), API Wikipédia | rien |
+| Fin de journée | à partir de 17 h : météo de demain, premier rendez-vous, poubelles à sortir | Open-Meteo, Google Agenda | idem Agenda |
 | Demain | la nuit, les rendez-vous du lendemain | Google Agenda | idem Agenda |
 
 Le bandeau du haut porte la date, une case par écran (pleine pour celui affiché), le nombre de mails importants, et la veille du ramassage un rappel des poubelles. Un écran sans réglage (pas de station, pas de base Notion) sort de la rotation et des boutons. Une source en panne affiche un message dans son bloc : l'écran sort toujours.
@@ -55,6 +58,7 @@ Il faut un Mac allumé en permanence (le serveur tourne en agent launchd ; sous 
    | `GOOGLE_KINDLE_REFRESH_TOKEN` | écrit par `python3 autoriser.py` (consentement en lecture seule, mails et agenda) |
    | `NOTION_TOKEN` | facultatif : concepts de dessin, livre à lire |
    | `N8N_API_KEY` | facultatif : abonnés |
+   | `GOOGLE_API_KEY`, `META_SYSTEM_USER_TOKEN`, `BREVO_API_KEY` | facultatif : Mon activité (YouTube, Instagram, inscrits) ; les ventes passent par `NOTION_TOKEN` |
 
 3. **Serveur** : `python3 serveur.py` relance `dashboard.py --tous` à chaque minute (borné à 110 s) et sert sur le port 8765 l'état, les écrans et les scripts de la liseuse. Pour qu'il démarre avec la session et revienne s'il tombe : adapter les chemins de [`com.exemple.kindle-dashboard.plist`](com.exemple.kindle-dashboard.plist), le copier dans `~/Library/LaunchAgents/`, puis `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.exemple.kindle-dashboard.plist`. Les écrans sont écrits dans `~/Library/Caches/kindle-dashboard/`.
 4. **Scripts de la liseuse** : `python3 publier.py` contrôle chaque script (`dash -n`, pas de fin de ligne Windows) et le copie là où le serveur le sert. C'est le seul chemin : un fichier en cours d'écriture ne part jamais sur la liseuse. La liseuse se met à jour toute seule au passage suivant.
@@ -96,13 +100,13 @@ Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, p
 | Plage | Écrans (minutes) |
 |---|---|
 | Matin, 06:30 à 09:00 | Météo 6, Stations 6, Agenda 6, Lumière 5, Courrier 4, Air 3, Mot 4, Citation 3 |
-| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Air 4, Stations 6, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3 |
-| Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Dessin 8, Livre 6, Mot 4, Citation 3 |
+| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Activité 4, Air 4, Stations 6, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3, Insolite 4, Fin de journée 5 (dès 17 h) |
+| Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Fin de journée 4, Dessin 8, Livre 6, Insolite 5, Mot 4, Citation 3 |
 | Nuit, 23:00 à 06:30 | Demain, fixe |
 
 Trois écrans n'entrent dans le cycle que s'ils ont quelque chose à dire : **Courrier** s'il y a un mail important non lu ; **Stations** dans ses créneaux (`stations_creneaux`) et dans les 2 h avant un rendez-vous d'un agenda de sorties, puis fixe dans les 45 dernières minutes ; **Lumière** autour de l'heure bleue et de l'heure dorée. Flash complet à chaque changement d'écran, partiel pour la mise à jour d'un écran qui reste (les minutes du tram).
 
-Je l'ai sur mon bureau toute la journée : pour ne pas revoir les mêmes l'après-midi, dessin, livre, mot et citation sont retirés à 13 h (`RETIRAGE` dans [`dashboard.py`](dashboard.py)).
+Je l'ai sur mon bureau toute la journée : pour ne pas revoir les mêmes l'après-midi, dessin, livre, mot, citation et article insolite sont retirés à 13 h (`RETIRAGE` dans [`dashboard.py`](dashboard.py)).
 
 ## Réglages
 
@@ -116,6 +120,7 @@ Je l'ai sur mon bureau toute la journée : pour ne pas revoir les mêmes l'aprè
 | `poubelles` | `{jour: texte}` du rappel dans le bandeau, la veille au soir (0 = rappel le lundi) |
 | `notion` | `concepts` et `bibliotheque` : identifiants de data sources Notion ; `jeton_bibliotheque` : nom de la variable du jeton |
 | `abonnes` | adresse de la table n8n (`/api/v1/data-tables/<id>/rows`) |
+| `activite` | écran Mon activité : `chaine` (identifiant de chaîne YouTube, `UC…`), `instagram` (identifiant du compte professionnel), `ventes` (data source Notion avec `Date`, `Prix final`, `Remboursement`), `listes` (identifiants de listes Brevo). Chaque bloc vide affiche un tiret ; tout vide, l'écran sort du cycle |
 | `stations` | une entrée par colonne : `nom`, `mode` (étiquette), `parent` (stop_id de la station dans le GTFS), `ligne` (route_id), `sens` (direction_id), `direct` ([nom_station, sens_ligne] du temps réel, tram seulement), `vers` (où va ce sens, en clair) |
 | `stations_creneaux` | créneaux fixes de l'écran Stations : `jour` (0 = lundi), `de`, `a`, `texte` |
 | `ecrans_retires` | écrans à ne jamais afficher |
@@ -148,6 +153,7 @@ La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs
 | [`verifier.py`](verifier.py) | santé en une commande |
 | [`autoriser.py`](autoriser.py) | consentement Google en lecture seule, jeton écrit dans le `.env`, jamais affiché |
 | [`citations.py`](citations.py) | refait `citations.json` depuis Wikiquote (une fois par mois suffit) |
+| [`insolites.py`](insolites.py) | refait `insolites.json` depuis la page Wikipédia (une fois par mois suffit) |
 | [`demo.py`](demo.py) | tous les écrans sans compte |
 | [`liseuse/dashboard/`](liseuse/dashboard) | scripts de la liseuse : `noyau.sh` > `superviseur.sh` > `boucle.sh` et `touches.sh` ; `demarrage-auto.sh`, `tester.sh`, `config.sh` |
 | [`liseuse/extensions/kindle-dashboard/`](liseuse/extensions/kindle-dashboard) | menu KUAL |
@@ -156,10 +162,10 @@ La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs
 
 ## Licence
 
-Code et textes sous **[licence MIT](LICENSE)**. Les polices gardent la leur (SIL Open Font License 1.1, dans [`polices/`](polices)) ; `citations.json` reprend les citations du jour de Wikiquote en français (CC BY-SA 4.0). Le Wiktionnaire et les images du Cleveland Museum sont lus à l'exécution, rien n'en est redistribué. Détail : [`LICENCES-TIERS.md`](LICENCES-TIERS.md).
+Code et textes sous **[licence MIT](LICENSE)**. Les polices gardent la leur (SIL Open Font License 1.1, dans [`polices/`](polices)) ; `citations.json` reprend les citations du jour de Wikiquote en français et `insolites.json` les lignes de la page « Articles insolites » de Wikipédia (CC BY-SA 4.0). Le Wiktionnaire et les images du Cleveland Museum sont lus à l'exécution, rien n'en est redistribué. Détail : [`LICENCES-TIERS.md`](LICENCES-TIERS.md).
 
 Kindle est une marque d'Amazon. Ce projet n'est ni affilié à Amazon, ni à ilévia, ni à la Métropole européenne de Lille.
 
 ## In English
 
-My always-on dashboard on a jailbroken Kindle 4 (2011): weather, calendar, mail, live tram and metro departures (Lille's ilévia network, real-time API and GTFS), drawing prompt of the day with a public-domain drawing from the Cleveland Museum of Art, golden and blue hour forecast, French word and quote of the day. My Mac renders each screen from HTML with headless Chromium, dithers it to 16 grays and serves it over the local network; the Kindle polls every 20 seconds, updates itself, survives Mac outages and bad updates. Try it without a Kindle or any account: `python3 demo.py`. Code and docs are in French; MIT licence.
+My always-on dashboard on a jailbroken Kindle 4 (2011): weather, calendar, mail, live tram and metro departures (Lille's ilévia network, real-time API and GTFS), drawing prompt of the day with a public-domain drawing from the Cleveland Museum of Art, golden and blue hour forecast, French word and quote of the day, an odd Wikipedia article, an end-of-day recap, and my YouTube, Instagram and sales numbers. My Mac renders each screen from HTML with headless Chromium, dithers it to 16 grays and serves it over the local network; the Kindle polls every 20 seconds, updates itself, survives Mac outages and bad updates. Try it without a Kindle or any account: `python3 demo.py`. Code and docs are in French; MIT licence.
