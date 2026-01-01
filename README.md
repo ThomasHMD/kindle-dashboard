@@ -1,6 +1,6 @@
 # Kindle dashboard
 
-**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation.**
+**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, qualité de l'air, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation.**
 
 Mon Mac fabrique les images, la liseuse ne fait que les afficher. Chaque minute, un script rassemble les données, remplit une page HTML, la photographie avec Chromium à la taille exacte de la dalle et la passe en 16 niveaux de gris. La liseuse, jailbreakée et branchée sur un chargeur, lit l'état du Mac en wifi toutes les 20 secondes et ne télécharge l'écran que s'il a changé. Style néo-rétro : polices pixel à leurs tailles natives, titres inversés, trames, aucun texte gris.
 
@@ -27,6 +27,7 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Écran | Ce qu'il montre | Source | Il faut |
 |---|---|---|---|
 | Météo | maintenant, ressenti, vent, pluie, la journée de 2 h en 2 h, 7 jours, lever et coucher, phase de la lune | [Open-Meteo](https://open-meteo.com/) | rien |
+| Qualité de l'air | indice européen et son niveau, conseil, polluant en cause, indice sur 24 h, particules, dioxyde d'azote et ozone expliqués à l'écran, meilleure heure pour aérer, pollens en saison | [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | rien |
 | Agenda | rendez-vous d'aujourd'hui et de demain, passés retirés | Google Agenda, lecture seule | un client OAuth, `autoriser.py` |
 | Courrier | mails non lus que Gmail marque « Important », écran sauté s'il n'y en a pas | Gmail, lecture seule | idem |
 | Abonnés | abonnés par réseau, gain par jour sur 30 jours | une table [n8n](https://n8n.io/) remplie chaque jour par un workflow | `N8N_API_KEY`, facultatif |
@@ -35,7 +36,7 @@ Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil)
 | Dessin du jour | un concept, une consigne de 10 à 30 min, un dessin ancien du domaine public | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | rien (Notion, facultatif) |
 | Livre à lire | un livre de ma bibliothèque que je n'ai pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
 | Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
-| Citation | la citation du jour de Wikiquote, sinon une de la banque | [`citations.json`](citations.json) | rien |
+| Citation | le matin la citation du jour de Wikiquote si elle existe, sinon une de la banque | [`citations.json`](citations.json) | rien |
 | Demain | la nuit, les rendez-vous du lendemain | Google Agenda | idem Agenda |
 
 Le bandeau du haut porte la date, une case par écran (pleine pour celui affiché), le nombre de mails importants, et la veille du ramassage un rappel des poubelles. Un écran sans réglage (pas de station, pas de base Notion) sort de la rotation et des boutons. Une source en panne affiche un message dans son bloc : l'écran sort toujours.
@@ -94,12 +95,14 @@ Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, p
 
 | Plage | Écrans (minutes) |
 |---|---|
-| Matin, 06:30 à 09:00 | Météo 6, Stations 6, Agenda 6, Lumière 5, Courrier 4, Mot 4, Citation 3 |
-| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Stations 6, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3 |
+| Matin, 06:30 à 09:00 | Météo 6, Stations 6, Agenda 6, Lumière 5, Courrier 4, Air 3, Mot 4, Citation 3 |
+| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Air 4, Stations 6, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3 |
 | Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Dessin 8, Livre 6, Mot 4, Citation 3 |
 | Nuit, 23:00 à 06:30 | Demain, fixe |
 
 Trois écrans n'entrent dans le cycle que s'ils ont quelque chose à dire : **Courrier** s'il y a un mail important non lu ; **Stations** dans ses créneaux (`stations_creneaux`) et dans les 2 h avant un rendez-vous d'un agenda de sorties, puis fixe dans les 45 dernières minutes ; **Lumière** autour de l'heure bleue et de l'heure dorée. Flash complet à chaque changement d'écran, partiel pour la mise à jour d'un écran qui reste (les minutes du tram).
+
+Je l'ai sur mon bureau toute la journée : pour ne pas revoir les mêmes l'après-midi, dessin, livre, mot et citation sont retirés à 13 h (`RETIRAGE` dans [`dashboard.py`](dashboard.py)).
 
 ## Réglages
 
@@ -130,7 +133,7 @@ La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs
 - **Touches** : un `dd` et un `hexdump` par évènement de `/dev/input/event*`, périphérique gardé ouvert ; 0,7 s d'un appui à l'écran (dont 0,36 s d'`eips`).
 - **E-ink** : polices pixel seulement à leurs tailles natives (VT323 25, 50, 75… ; Silkscreen 16, 24), sans lissage ; aucun texte gris sur une dalle Pearl ; images au contraste étiré puis tramées en 16 gris (Floyd-Steinberg), l'arrondi simple fait des bandes. Mesures et sources : [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md).
 - **Dessins pour l'e-ink** : l'API ouverte du Cleveland Museum renvoie aussi des aquarelles et des feuilles pâles ; `affichable()` garde les techniques graphiques (graphite, craie, plume, fusain, lavis), écarte la couleur, les rectos-versos, les formats extrêmes, et exige une encre entre 4 et 45 % de la surface (seuils calés sur 20 dessins).
-- **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister, ou ne jamais exister (je prends alors celui du même jour une année passée) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
+- **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister, ou ne jamais exister (je prends alors celui du même jour une année passée, comme pour le second mot de la journée) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
 - **Google** : un client OAuth en mode « Test » voit ses jetons expirer en 7 jours ; `verifier.py` fait un vrai échange de jeton pour le voir venir.
 
 ## Fichiers

@@ -57,20 +57,21 @@ MODELES = {"k4": (600, 800), "k5": (600, 800), "touch": (600, 800), "pw1": (758,
 # important, stations hors de leurs créneaux (STATIONS_CRENEAUX) et des 2 h avant une sortie, lumière hors des heures photo.
 PLAYLIST = {
     "matin": ("06:30", "09:00", [("meteo", 360), ("stations", 360), ("agenda", 360), ("lumiere", 300), ("courrier", 240),
-                                 ("mot", 240), ("citation", 180)]),
-    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("stations", 360),
+                                 ("air", 180), ("mot", 240), ("citation", 180)]),
+    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("air", 240), ("stations", 360),
                                    ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240), ("citation", 180)]),
     "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("dessin", 480), ("livre", 360),
                                   ("mot", 240), ("citation", 180)]),
     "nuit": ("23:00", "06:30", [("demain", 1800)]),
 }
 IMMINENT = 45  # minutes avant une sortie : l'écran Stations reste affiché, la rotation s'arrête
-PLEIN = ("meteo", "citation", "stations", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
+PLEIN = ("meteo", "air", "citation", "stations", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
 # Flash complet en arrivant sur un écran (les écrans conditionnels changent l'enchaînement : une disposition peut en
 # suivre une autre n'importe où) ; partiel pour la mise à jour d'un écran qui reste.
-COMPLET_A = ("meteo", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation", "demain")
-NAVIGATION = ["meteo", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation",
+COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation", "demain")
+NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "stations", "lumiere", "dessin", "livre", "mot", "citation",
               "demain"]  # ordre des boutons de la liseuse
+RETIRAGE = 13  # heure du second tirage du jour : dessin, livre, mot et citation changent pour l'après-midi
 AGENDAS = CONFIG.get("agendas", {"primary": "Agenda"})  # calendarId → libellé
 SORTIES = tuple(CONFIG.get("agendas_sorties", []))  # agendas où un rendez-vous veut dire sortir (écran Stations)
 PAS_UNE_SORTIE = CONFIG.get("pas_une_sortie", "sport|salle")  # rendez-vous pour lesquels on ne prend pas le tram
@@ -85,6 +86,16 @@ CONCEPTS = NOTION.get("concepts", "")          # base des concepts de dessin (da
 BIBLIOTHEQUE = NOTION.get("bibliotheque", "")  # bibliothèque de livres (data source)
 JETON_BIBLIOTHEQUE = NOTION.get("jeton_bibliotheque", "NOTION_TOKEN")
 CLIENT_GOOGLE = CONFIG.get("google_client", ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"])  # variables du .env, client « Desktop »
+AIR = "https://air-quality-api.open-meteo.com/v1/air-quality"
+# Indice européen (EAQI) : plafond du niveau, nom, conseil.
+NIVEAUX_AIR = ((20, "BON", "Rien à signaler, on peut tout ouvrir."), (40, "CORRECT", "Aucune précaution à prendre."),
+               (60, "MOYEN", "Personnes sensibles : moins de sport dehors."), (80, "MAUVAIS", "Éviter le sport intense dehors."),
+               (100, "TRÈS MAUVAIS", "Pas d'effort dehors, fenêtres fermées."),
+               (math.inf, "EXTRÊME", "Rester dedans, fenêtres fermées."))
+POLLUANTS = (("pm2_5", "PARTICULES PM2.5", "les plus fines : chauffage, trafic"), ("pm10", "PARTICULES PM10", "combustion, poussières"),
+             ("nitrogen_dioxide", "DIOXYDE D'AZOTE", "surtout le trafic"), ("ozone", "OZONE", "soleil sur la pollution, l'été"))
+POLLENS = {"alder_pollen": "aulne", "birch_pollen": "bouleau", "grass_pollen": "graminées", "mugwort_pollen": "armoise",
+           "olive_pollen": "olivier", "ragweed_pollen": "ambroisie"}
 CLEVELAND = "https://openaccess-api.clevelandart.org/api/artworks/"
 FAMILLES = {  # famille de la consigne → requêtes Cleveland (une par jour, tirée au sort)
     "valeurs": [{"technique": "chalk"}, {"technique": "charcoal"}, {"technique": "wash"}],
@@ -431,15 +442,24 @@ def reseaux(maintenant):
     return {"reseaux": out, "semaine": sum(x["d7"] or 0 for x in out)}
 
 
+def air(maintenant):
+    """Qualité de l'air heure par heure sur 3 jours (Open-Meteo, sans clé) : indice européen, sous-indice et teneur
+    de chaque polluant, pollens (Europe, en saison)."""
+    champs = ["european_aqi"] + [x for p, _, _ in POLLUANTS for x in (p, f"european_aqi_{p}")] + list(POLLENS)
+    q = urllib.parse.urlencode({"latitude": LIEU["lat"], "longitude": LIEU["lon"], "hourly": ",".join(champs),
+                                "timezone": "Europe/Paris", "forecast_days": 3})
+    return appel(f"{AIR}?{q}")["hourly"]
+
+
 def citation(maintenant):
-    """Citation du jour de Wikiquote si elle existe pour cette date, sinon une de la banque choisie d'après la date."""
+    """Le matin, la citation du jour de Wikiquote si elle existe pour cette date ; sinon, et l'après-midi, une de la
+    banque choisie d'après le tirage du moment."""
     banque = json.loads((ICI / "citations.json").read_text(encoding="utf-8"))
     jour = f"{maintenant.day} {MOIS[maintenant.month - 1].lower()} {maintenant.year}"
     du_jour = [q for q in banque if q["jour"] == jour]
-    if du_jour:
+    if du_jour and maintenant.hour < RETIRAGE:
         return du_jour[0]
-    graine = int(hashlib.sha256(maintenant.strftime("%Y-%m-%d").encode()).hexdigest(), 16)
-    return banque[graine % len(banque)]
+    return banque[graine(maintenant) % len(banque)]
 
 
 def lune(maintenant):
@@ -613,7 +633,7 @@ def ecran(maintenant, panneau, contenu, meteo_html=None, importants=0):
     points = "".join(f'<i class="{"ici" if p == panneau else ""}"></i>' for p in NAVIGATION)
     quoi = POUBELLES.get(maintenant.weekday())  # la veille du ramassage, toute la journée
     rappel = f'<span class="badge rappel">{icone("poubelle", 16)}<span class="s16 gras">{quoi}</span></span>' if quoi else ""
-    # Place comptée (11 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
+    # Place comptée (12 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
     jours, mois = (JOURS_COURTS, MOIS_COURTS) if rappel and badge else (JOURS, MOIS_COURTS) if rappel else (JOURS, MOIS)
     if badge and not rappel and len(f"{JOURS[maintenant.weekday()]} {maintenant.day} {MOIS[maintenant.month - 1]}") > 18:
         mois = MOIS_COURTS
@@ -657,9 +677,14 @@ def propriete(p, k):
     return ""
 
 
+def tirage(maintenant):
+    """Clé du tirage du moment : un le matin, un autre à partir de RETIRAGE, pour ne pas revoir les mêmes l'après-midi."""
+    return f"{maintenant:%Y-%m-%d}{'-2' if maintenant.hour >= RETIRAGE else ''}"
+
+
 def graine(maintenant, sel=""):
-    """Même tirage toute la journée, un autre le lendemain."""
-    return int(hashlib.sha256(f"{maintenant:%Y-%m-%d}{sel}".encode()).hexdigest(), 16)
+    """Même résultat pendant tout le tirage du moment, un autre au suivant."""
+    return int(hashlib.sha256(f"{tirage(maintenant)}{sel}".encode()).hexdigest(), 16)
 
 
 def garder_du_jour(dossier, motif, garde):
@@ -749,10 +774,10 @@ def consigne(maintenant, concept):
 
 
 def oeuvre(maintenant, famille, sortie):
-    """Un dessin CC0 du Cleveland Museum qui passe sur l'e-ink, gardé toute la journée. Trois candidats au plus par
-    appel (le passage de dashboard.py est borné) : la recherche reprend où elle en était au passage suivant."""
+    """Un dessin CC0 du Cleveland Museum qui passe sur l'e-ink, gardé pendant le tirage du moment. La recherche
+    s'arrête au bout de 25 s (le passage de dashboard.py est borné) et reprend où elle en était au passage suivant."""
     from PIL import Image
-    jour = f"{maintenant:%Y-%m-%d}"
+    jour = tirage(maintenant)
     cache = sortie / "cache"
     fiche = cache / f"oeuvre-{jour}.json"
     if fiche.exists():
@@ -767,26 +792,28 @@ def oeuvre(maintenant, famille, sortie):
         total = json.loads(telecharger(f"{CLEVELAND}?{urllib.parse.urlencode({**base, 'limit': 1})}"))["info"]["total"]
         essais = {"jour": jour, "famille": famille, "base": base, "total": max(total, 1),
                   "debut": graine(maintenant, "oeuvre") % max(total, 1), "vus": 0}
-    q = urllib.parse.urlencode({**essais["base"], "limit": 3, "skip": (essais["debut"] + essais["vus"]) % essais["total"],
-                                "fields": "id,title,creators,creation_date,technique,images,url"})
-    for o in json.loads(telecharger(f"{CLEVELAND}?{q}"))["data"]:
-        essais["vus"] += 1
-        web = ((o.get("images") or {}).get("web") or {}).get("url")
-        if not web:
-            continue
-        img = Image.open(io.BytesIO(telecharger(web, timeout=10)))
-        ok, _ = affichable(img, o.get("technique") or "", o.get("title") or "")
-        if not ok:
-            continue
-        photo = cache / f"oeuvre-{jour}.jpg"
-        img.convert("RGB").save(photo, quality=92)
-        auteur = re.sub(r"\s*\(.*$", "", (o.get("creators") or [{}])[0].get("description") or "Anonyme")
-        res = {"titre": o["title"], "auteur": auteur, "date": o.get("creation_date") or "", "image": str(photo),
-               "ratio": img.width / img.height}
-        ecrire(fiche, json.dumps(res, ensure_ascii=False))
-        garder_du_jour(cache, "oeuvre-2*.json", fiche.name)  # fiches et images des jours passés
-        garder_du_jour(cache, "oeuvre-2*.jpg", photo.name)
-        return res
+    limite = time.monotonic() + 25
+    while time.monotonic() < limite and essais["vus"] < essais["total"]:
+        q = urllib.parse.urlencode({**essais["base"], "limit": 3, "skip": (essais["debut"] + essais["vus"]) % essais["total"],
+                                    "fields": "id,title,creators,creation_date,technique,images,url"})
+        for o in json.loads(telecharger(f"{CLEVELAND}?{q}"))["data"]:
+            essais["vus"] += 1
+            web = ((o.get("images") or {}).get("web") or {}).get("url")
+            if not web:
+                continue
+            img = Image.open(io.BytesIO(telecharger(web, timeout=10)))
+            ok, _ = affichable(img, o.get("technique") or "", o.get("title") or "")
+            if not ok:
+                continue
+            photo = cache / f"oeuvre-{jour}.jpg"
+            img.convert("RGB").save(photo, quality=92)
+            auteur = re.sub(r"\s*\(.*$", "", (o.get("creators") or [{}])[0].get("description") or "Anonyme")
+            res = {"titre": o["title"], "auteur": auteur, "date": o.get("creation_date") or "", "image": str(photo),
+                   "ratio": img.width / img.height}
+            ecrire(fiche, json.dumps(res, ensure_ascii=False))
+            garder_du_jour(cache, "oeuvre-2*.json", fiche.name)  # fiches et images des tirages passés
+            garder_du_jour(cache, "oeuvre-2*.jpg", photo.name)
+            return res
     ecrire(suivi, json.dumps(essais, ensure_ascii=False))
     return {"erreur": f"Dessin du jour : recherche en cours ({essais['vus']} essayés)"}
 
@@ -946,9 +973,9 @@ def heure_photo(maintenant, s):
 
 def livre_du_jour(maintenant, sortie):
     """Un livre possédé et pas lu, parmi ceux que propose la formule « Suggéré ? » de Ma bibliothèque (elle change
-    chaque heure : le choix du jour est gardé dans une fiche)."""
+    chaque heure : le choix du tirage du moment est gardé dans une fiche)."""
     cache = sortie / "cache"
-    fiche = cache / f"livre-{maintenant:%Y-%m-%d}.json"
+    fiche = cache / f"livre-{tirage(maintenant)}.json"
     if fiche.exists():
         return json.loads(fiche.read_text(encoding="utf-8"))
     filtre = {"and": [{"property": "Suggéré ?", "formula": {"string": {"equals": "A lire 🤓"}}},
@@ -966,7 +993,7 @@ def livre_du_jour(maintenant, sortie):
            "resume": re.sub(r"^\(Généré via IA\)\s*", "", resume), "tags": propriete(p, "Tags"), "type": propriete(p, "Type")}
     couverture = propriete(p, "Chemin de la couverture (calc.)")
     if couverture:
-        photo = cache / f"livre-{maintenant:%Y-%m-%d}.img"
+        photo = cache / f"livre-{tirage(maintenant)}.img"
         photo.write_bytes(telecharger(couverture, timeout=20))
         res["image"] = str(photo)
         garder_du_jour(cache, "livre-2*.img", photo.name)
@@ -976,10 +1003,11 @@ def livre_du_jour(maintenant, sortie):
 
 
 def mot_du_jour(maintenant, sortie):
-    """Le mot du jour du Wiktionnaire. Il arrive qu'il n'ait pas de page (« néphritique », 01/01/2026) : on prend alors
-    celui du même jour les années d'avant, jamais vu à l'écran, plutôt que celui de la veille, qui n'est qu'un dernier recours."""
+    """Le matin, le mot du jour du Wiktionnaire. Il arrive qu'il n'ait pas de page (« néphritique », 01/01/2026) : on
+    prend alors celui du même jour les années d'avant, jamais vu à l'écran, plutôt que celui de la veille, qui n'est
+    qu'un dernier recours. L'après-midi, directement un mot des années d'avant."""
     cache = sortie / "cache"
-    fiche = cache / f"mot-{maintenant:%Y-%m-%d}.json"
+    fiche = cache / f"mot-{tirage(maintenant)}.json"
     if fiche.exists():
         return json.loads(fiche.read_text(encoding="utf-8"))
     api = "https://fr.wiktionary.org/w/api.php?"
@@ -988,7 +1016,8 @@ def mot_du_jour(maintenant, sortie):
         r = json.loads(telecharger(api + urllib.parse.urlencode({"action": "parse", "page": page, "prop": "wikitext",
                                                                  "format": "json", "redirects": 1})))
         return (r.get("parse") or {}).get("wikitext", {}).get("*")
-    for recul in (0, 365, 730, 1095, 1460, 1825, 1, 2, 3):
+    for recul in ((0, 365, 730, 1095, 1460, 1825, 1, 2, 3) if maintenant.hour < RETIRAGE else
+                  (730, 1095, 1460, 1825, 2190, 365, 1, 2, 3)):
         jour = maintenant - dt.timedelta(days=recul)
         mot = re.sub(r"<noinclude>.*", "", wikitexte(f"Modèle:Mot_du_jour/{jour:%Y/%m/%d}") or "", flags=re.S).strip()
         t = wikitexte(mot) if mot else None
@@ -1199,6 +1228,49 @@ def ecran_lumiere(maintenant, s, ciel):
             f'{nuages}{ligne_autre}</section>')
 
 
+def moment_aerer(maintenant, a, i):
+    """(rang de l'heure, libellé) où l'indice sera le plus bas, entre 8 h et 22 h : aujourd'hui, sinon demain."""
+    def jour(d):
+        return [j for j in range(i, len(a["time"])) if a["time"][j][:10] == f"{d:%Y-%m-%d}" and 8 <= int(a["time"][j][11:13]) < 22
+                and a["european_aqi"][j] is not None]
+    heures, quand = jour(maintenant), ""
+    if not heures:
+        heures, quand = jour(maintenant + dt.timedelta(days=1)), "DEMAIN "
+    j = min(heures, key=lambda x: a["european_aqi"][x])
+    return j, "MAINTENANT" if j == i else f"{quand}{int(a['time'][j][11:13])} H"
+
+
+def ecran_air(maintenant, a):
+    if "erreur" in a:
+        return entete("QUALITÉ DE L'AIR") + f'<p>{esc(a["erreur"])}</p>'
+    heure = f"{maintenant:%Y-%m-%dT%H}:00"
+    i = a["time"].index(heure) if heure in a["time"] else None
+    if i is None or a["european_aqi"][i] is None:
+        return entete("QUALITÉ DE L'AIR") + "<p>Pas de mesure pour cette heure.</p>"
+    indice = a["european_aqi"][i]
+    rang, (_, niveau, conseil) = next((n, x) for n, x in enumerate(NIVEAUX_AIR) if indice <= x[0])
+    echelle = "".join(f'<i class="{"atteint" if n <= rang else ""}"></i>' for n in range(len(NIVEAUX_AIR)))
+    sous = {p: a[f"european_aqi_{p}"][i] or 0 for p, _, _ in POLLUANTS}
+    cause = next(nom for p, nom, _ in POLLUANTS if sous[p] == max(sous.values()))
+    heros = (f'<div class="heros"><div class="entete"><span class="tag">QUALITÉ DE L\'AIR</span><span class="s24 gras">INDICE {indice}</span></div>'
+             f'<div class="grand">{niveau}</div><div class="echelle">{echelle}</div>'
+             f'<div class="phrase">{esc(conseil)}</div><div class="phrase s16 gras">CAUSE : {esc(cause)}</div></div>')
+    barres = "".join(f'<div class="col"><i style="height:{min(v or 0, 100)}px"></i><span>{a["time"][j][11:13] if n % 6 == 0 else ""}</span></div>'
+                     for n, (j, v) in enumerate((j, a["european_aqi"][j]) for j in range(i, min(i + 24, len(a["time"])))))
+    courbe = f'<div class="suite"><div class="s16 gras">INDICE SUR 24 H</div><div class="courbe">{barres}</div></div>'
+    jauges = "".join(f'<span class="s16 gras">{nom}</span><div class="barre-pleine"><i style="width:{min(sous[p], 100)}%"></i></div>'
+                     f'<span class="pc">{a[p][i] or 0:.0f}</span><span class="role">{role}</span>' for p, nom, role in POLLUANTS)
+    polluants = (f'<div class="nuages"><div class="s16 gras">CE QU\'IL Y A DANS L\'AIR (MICROGRAMMES PAR M3)</div>'
+                 f'<div class="jauges">{jauges}</div></div>')
+    j, moment = moment_aerer(maintenant, a, i)
+    fin = next((k for k in range(i, len(a["time"])) if a["time"][k][:10] != heure[:10]), len(a["time"]))
+    pollens = sorted(((max(x or 0 for x in a[p][i:fin]), nom) for p, nom in POLLENS.items()), reverse=True)
+    pollens = ", ".join(f"{nom} {v:.0f}" for v, nom in pollens[:2] if v >= 1) or "aucun"
+    bas = (f'<div class="autre"><span class="s16 gras">AÉRER</span><span>{moment} · indice {a["european_aqi"][j]}</span>'
+           f'<span class="s16 gras">POLLENS</span><span>{esc(pollens)}</span></div>')
+    return f'<section class="lumiere air"><div class="haut">{heros}{courbe}</div>{polluants}{bas}</section>'
+
+
 def ecran_livre(maintenant, b, sortie):
     if "erreur" in b:
         return entete("À LIRE") + f'<p>{esc(b["erreur"])}</p>'
@@ -1359,6 +1431,7 @@ def main():
         "agenda": lambda: en_cache(args.sortie, "agenda", ttl(300), agenda, maintenant, args.sortie),
         "courrier": lambda: en_cache(args.sortie, "courrier-importants", ttl(120), courrier, maintenant),
         "reseaux": lambda: en_cache(args.sortie, "reseaux", ttl(10800), reseaux, maintenant),
+        "air": lambda: en_cache(args.sortie, "air", ttl(3600), air, maintenant),
         "citation": lambda: sur(citation, maintenant),
         "concepts": lambda: en_cache(args.sortie, "concepts", ttl(7 * 86400), concepts, maintenant),
         "livre": lambda: en_cache(args.sortie, "livre", ttl(600), livre_du_jour, maintenant, args.sortie),
@@ -1387,6 +1460,7 @@ def main():
         actuel = "stations"
     fabriques = {
         "meteo": lambda: ecran_meteo(maintenant, m, age),
+        "air": lambda: ecran_air(maintenant, sources["air"]()),
         "agenda": lambda: panneau_agenda(maintenant, sources["agenda"]()),
         "courrier": lambda: panneau_courrier(maintenant, c),
         "reseaux": lambda: panneau_reseaux(maintenant, sources["reseaux"]()),
