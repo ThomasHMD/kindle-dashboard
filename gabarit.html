@@ -159,6 +159,18 @@ img.t16 { display: block; image-rendering: pixelated; }
 .lumiere .jauges .role { padding-left: 6px; }
 .lumiere .barre-pleine { flex: 1; height: 12px; border: 2px solid var(--encre); }
 .lumiere .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+/* qualité de l'air : reprend les blocs de la Lumière */
+.air .haut { gap: 24px; }
+.air .autre { white-space: nowrap; }
+.air .echelle { align-self: stretch; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 6px 0 8px; }
+.air .echelle i { height: 16px; border: 2px solid var(--encre); }
+.air .echelle i.atteint { background: var(--encre); }
+.air .jauges { grid-template-columns: 212px 130px 36px 1fr; }
+.air .suite { width: 300px; flex: none; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 6px; }
+.air .courbe { display: grid; grid-template-columns: repeat(24, 1fr); align-items: end; margin-top: 4px; }
+.air .col { display: flex; flex-direction: column; justify-content: flex-end; height: 128px; }
+.air .col i { display: block; width: 9px; background: var(--encre); }
+.air .col span { height: 22px; line-height: 22px; white-space: nowrap; }
 .lumiere .autre { display: flex; gap: 14px; align-items: baseline; border-top: 2px solid var(--encre); padding-top: 4px; margin-top: 6px; }
 /* livre à lire */
 .livre { flex: 1; display: grid; grid-template-columns: 300px 16px 1fr; min-height: 0; }
