@@ -7,6 +7,7 @@
  "poubelles": {"0": "POUBELLE", "2": "RECYCLABLE"},
  "notion": {"concepts": "", "bibliotheque": "", "jeton_bibliotheque": "NOTION_TOKEN"},
  "abonnes": "",
+ "activite": {"chaine": "", "instagram": "", "ventes": "", "listes": []},
  "stations": [
   {"nom": "Tourcoing Centre", "mode": "TRAM", "parent": "6666", "ligne": "71", "sens": "1",
    "direct": ["TOURCOING CENTRE", "LILLE FLANDRES"], "vers": "LILLE"},

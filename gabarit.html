@@ -159,6 +159,26 @@ img.t16 { display: block; image-rendering: pixelated; }
 .lumiere .jauges .role { padding-left: 6px; }
 .lumiere .barre-pleine { flex: 1; height: 12px; border: 2px solid var(--encre); }
 .lumiere .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+/* activité, fin de journée, article insolite */
+.activite, .fin { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.activite .deux, .fin .deux { flex: 1; display: grid; grid-template-columns: 1fr 16px 1fr; min-height: 0; }
+.activite .sep, .fin .sep { justify-self: center; width: 4px; border-left: 4px double var(--encre); }
+.activite .media { display: flex; flex-direction: column; min-width: 0; }
+.activite .titre { font-size: 22px; line-height: 22px; height: 44px; overflow: hidden; margin-top: 6px; }
+.activite .vues { font-size: 125px; line-height: 120px; margin-top: 12px; }
+.activite .reactions { margin-top: 6px; }
+.activite .chiffres { display: grid; grid-template-columns: 110px repeat(3, 1fr); gap: 2px 12px; align-items: baseline; white-space: nowrap; }
+.activite .double { margin: 8px 0 4px; }
+.fin .ciel { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.fin .temp { font-size: 75px; line-height: 72px; white-space: nowrap; }
+.fin .rv { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding-left: 12px; min-width: 0; }
+.fin .heure { font-size: 100px; line-height: 96px; }
+.fin .quoi { font-size: 50px; line-height: 46px; overflow: hidden; max-height: 92px; }
+.fin .rappel-fin { display: flex; justify-content: center; padding: 8px 0 12px; }
+.insolite.sans-image { grid-template-columns: 1fr; }
+.insolite .accroche { font-family: 'Instrument Serif'; font-style: italic; font-size: 28px; line-height: 1.1; margin-top: 8px; -webkit-font-smoothing: antialiased; }
+.insolite .double { margin: 8px 0 6px; }
+.insolite .pied { padding-top: 4px; }
 /* qualité de l'air : reprend les blocs de la Lumière */
 .air .haut { gap: 24px; }
 .air .autre { white-space: nowrap; }
