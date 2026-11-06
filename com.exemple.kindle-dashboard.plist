@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Agent launchd du Kindle dashboard : lance serveur.py à l'ouverture de session et le relance s'il tombe.
+     Remplacer les trois chemins (Python, serveur.py, journal), copier dans ~/Library/LaunchAgents/ puis
+     `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.exemple.kindle-dashboard.plist`.
+     Arrêt : `launchctl bootout gui/$(id -u)/com.exemple.kindle-dashboard`. Un Python fixe (venv dédié) évite qu'une
+     mise à jour de Python casse Playwright ou redemande l'autorisation du pare-feu. -->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.exemple.kindle-dashboard</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/bin/python3</string>
+		<string>/CHEMIN/VERS/kindle-dashboard/serveur.py</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>Nice</key>
+	<integer>10</integer>
+	<key>StandardOutPath</key>
+	<string>/CHEMIN/VERS/Library/Logs/kindle-dashboard.log</string>
+	<key>StandardErrorPath</key>
+	<string>/CHEMIN/VERS/Library/Logs/kindle-dashboard.log</string>
+</dict>
+</plist>

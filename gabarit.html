@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+{{POLICES}}
+/* v3, d'après RECHERCHE-DESIGN.md §6 : texte toujours noir, polices pixel à leurs tailles natives et sans lissage
+   (VT323 25/50/75/100/150/200, Silkscreen 16/24), icônes 16 × 16 à échelle entière, gris réservé aux trames. */
+:root { --encre: #000; --papier: #fff; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { zoom: {{ZOOM}}; }
+body { background: var(--papier); color: var(--encre); font-family: 'VT323', monospace; font-size: 25px; line-height: 1;
+  -webkit-font-smoothing: {{LISSAGE}}; }
+.ecran { width: 800px; height: {{HAUTEUR}}px; padding: 16px; display: grid; overflow: hidden;
+  grid-template-columns: 304px 16px 448px; grid-template-rows: 40px 8px 8px 1fr; }
+svg.px { shape-rendering: crispEdges; display: block; flex: none; }
+.s16 { font-family: 'Silkscreen'; font-size: 16px; letter-spacing: 1px; }
+.s24 { font-family: 'Silkscreen'; font-size: 24px; letter-spacing: 2px; }
+.gras { font-weight: 700; }
+.v50 { font-size: 50px; }
+.tag { font-family: 'Silkscreen'; font-weight: 700; font-size: 16px; letter-spacing: 2px; background: var(--encre);
+  color: var(--papier); padding: 4px 8px 4px; white-space: nowrap; display: inline-block; line-height: 1; }
+.tramee { background-image: repeating-conic-gradient(var(--encre) 0 25%, transparent 0 50%); background-size: 4px 4px; }
+.coupe { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* bandeau commun */
+.bandeau { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center;
+  background: var(--encre); color: var(--papier); padding: 0 12px; }
+.bandeau .droite { display: flex; align-items: center; gap: 16px; }
+.bandeau .pages i { border-color: var(--papier); }
+.bandeau .badge { display: flex; align-items: center; gap: 6px; }
+.bandeau svg.px { fill: var(--papier); }
+.bandeau .pages i.ici { background: var(--papier); }
+.trame { grid-column: 1 / -1; background-image: repeating-linear-gradient(90deg, var(--encre) 0 2px, transparent 2px 4px); }
+.hors-ligne { grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 24px;
+  border: 4px solid var(--encre); background: var(--papier); }
+.separation { grid-row: 4; grid-column: 2; justify-self: center; width: 4px; border-left: 4px double var(--encre); }
+
+/* ── colonne météo, fixe ── */
+.meteo { grid-row: 4; grid-column: 1; display: flex; flex-direction: column; overflow: hidden; padding-right: 4px; }
+.heros { display: flex; align-items: flex-start; gap: 12px; height: 120px; }
+.heros svg { margin-top: 8px; }
+.temp { font-size: 200px; line-height: 120px; height: 120px; letter-spacing: -6px; display: flex; }
+.temp.long { font-size: 150px; }
+.temp .deg { width: 24px; height: 24px; border: 6px solid var(--encre); margin: 22px 0 0 10px; flex: none; }
+.etat { margin-top: 4px; }
+.minmax { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
+.vent { margin-top: 4px; }
+.creneaux { margin-top: 6px; border-top: 4px double var(--encre); padding-top: 2px; }
+.cr { display: grid; grid-template-columns: 58px 32px 70px 72px 1fr; align-items: center; gap: 0 6px; height: 40px; }
+.cr .t { font-size: 50px; line-height: 40px; }
+.barre { width: 64px; height: 16px; border: 2px solid var(--encre); flex: none; }
+.barre i { display: block; height: 100%; }
+.cr .p { text-align: right; }
+.demain { display: flex; align-items: center; gap: 10px; border-top: 2px solid var(--encre); padding-top: 4px; margin-top: 2px; height: 50px; }
+.ephem { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--encre); padding-top: 4px; }
+.ephem span { display: flex; align-items: center; gap: 6px; }
+
+/* ── panneau tournant ── */
+.panneau { grid-row: 4; grid-column: 3; display: flex; flex-direction: column; overflow: hidden; padding-left: 4px; }
+.entete { display: flex; justify-content: space-between; align-items: center; height: 32px; margin-bottom: 10px; flex: none; }
+.entete .droite { display: flex; align-items: center; gap: 12px; }
+.pages { display: flex; gap: 6px; }
+.pages i { width: 10px; height: 10px; border: 2px solid var(--encre); }
+.pages i.ici { background: var(--encre); }
+.rubrique { margin: 10px 0 4px; }
+.rdv { display: grid; grid-template-columns: 120px 1fr; align-items: baseline; }
+.rdv.petit { grid-template-columns: 64px 1fr; }
+.rdv.grand { font-size: 50px; line-height: 50px; }
+.rdv .lieu { grid-column: 2; font-size: 25px; line-height: 22px; margin-bottom: 4px; }
+.rdv.petit { line-height: 28px; }
+.pointille { border-top: 2px dashed var(--encre); margin: 10px 0 2px; }
+.compte { display: flex; align-items: flex-end; gap: 16px; height: 96px; }
+.compte b { font-weight: 400; font-size: 150px; line-height: 96px; letter-spacing: -4px; }
+.compte div { padding-bottom: 8px; }
+.compte div span { display: block; margin-top: 8px; }
+.double { border-top: 4px double var(--encre); margin: 12px 0 4px; }
+.mail { padding: 6px 0 4px; border-bottom: 2px dashed var(--encre); }
+.mail .ligne1 { display: flex; align-items: center; gap: 8px; }
+.mail .puce { width: 12px; height: 12px; border: 2px solid var(--encre); flex: none; }
+.mail .puce.nl { background: var(--encre); }
+.mail .de { flex: 1; }
+.mail .sujet { padding-left: 20px; margin-top: 3px; line-height: 24px; }
+.reseau { height: 88px; border-top: 2px dashed var(--encre); padding-top: 8px; }
+.reseau .haut { display: flex; justify-content: space-between; align-items: center; }
+.reseau .bas { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 4px; }
+.reseau .nb { font-size: 75px; line-height: 48px; width: 190px; letter-spacing: -1px; white-space: nowrap; }
+.gains { display: flex; gap: 2px; width: 238px; height: 40px; flex: none; }
+.gains .col { width: 6px; display: flex; flex-direction: column; }
+.gains .h { flex: 1; display: flex; align-items: flex-end; border-bottom: 2px solid var(--encre); }
+.gains .b { display: flex; align-items: flex-start; }
+.gains i { display: block; width: 6px; }
+.gains .col:last-child i { background: var(--encre); }
+/* ── écrans pleins : Météo (journée + semaine) et Citation ── */
+.plein { grid-row: 4; grid-column: 1 / -1; display: flex; flex-direction: column; overflow: hidden; }
+.focus { display: grid; grid-template-columns: 304px 16px 448px; height: 226px; flex: none; }
+.focus .sep { justify-self: center; width: 4px; border-left: 4px double var(--encre); }
+.actuel { display: flex; flex-direction: column; }
+.journee { display: flex; flex-direction: column; padding-left: 4px; }
+.astres { display: flex; align-items: center; gap: 6px; }
+.astres svg + svg { margin-left: 10px; }
+.heures { display: grid; grid-template-columns: repeat(6, 1fr); }
+.heures .h { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.heures .barre, .semaine .barre { width: 56px; height: 12px; }
+.plein .double { margin: 8px 0 8px; }
+.semaine { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+.semaine .j { display: flex; flex-direction: column; align-items: center; gap: 6px; border-left: 2px dashed var(--encre); }
+.semaine .j:first-child { border-left: none; }
+.semaine .v50, .semaine .min { line-height: 40px; height: 40px; }
+.semaine .min { font-size: 50px; border-top: 2px solid var(--encre); padding-top: 2px; height: 44px; }
+.citation { flex: 1; display: flex; flex-direction: column; justify-content: center; -webkit-font-smoothing: antialiased; }
+.plein .citation { padding: 0 48px 24px; }
+.citation .ouvrant { font-family: 'Instrument Serif'; font-size: 120px; line-height: 60px; height: 52px; }
+.plein .citation .ouvrant { font-size: 160px; line-height: 80px; height: 70px; }
+.citation blockquote { font-family: 'Instrument Serif'; font-style: italic; line-height: 1.15; }
+.citation .filet { width: 48px; border-top: 2px solid var(--encre); margin: 16px 0 10px; }
+.citation .source { margin-top: 6px; -webkit-font-smoothing: {{LISSAGE}}; }
+.citation cite { font-style: normal; -webkit-font-smoothing: {{LISSAGE}}; }
+
+/* ── écrans du jour (01/01/2026) ── */
+img.t16 { display: block; image-rendering: pixelated; }
+.bandeau .date { white-space: nowrap; overflow: hidden; min-width: 0; }
+.bandeau .droite { flex: none; margin-left: 12px; }
+.bandeau .rappel { background: var(--papier); color: var(--encre); padding: 3px 8px; white-space: nowrap; }
+.bandeau .rappel svg.px { fill: var(--encre); }
+.bandeau .pages { gap: 3px; }
+.bandeau .pages i { width: 6px; height: 6px; border-width: 1px; }
+/* dessin du jour */
+.dessin { flex: 1; display: grid; grid-template-columns: 352px 16px 400px; min-height: 0; }
+.dessin .oeuvre { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.dessin .sep, .livre .sep { justify-self: center; width: 4px; border-left: 4px double var(--encre); }
+.dessin .txt { display: flex; flex-direction: column; padding-left: 4px; }
+.dessin .concept { font-size: 50px; line-height: 44px; }
+.dessin .def { margin-top: 8px; font-size: 22px; line-height: 22px; }
+.dessin .double { margin: 10px 0 8px; }
+.dessin .travail { display: flex; flex-direction: column; }
+.dessin .consigne { font-size: 34px; line-height: 30px; }
+.dessin .duree { margin-top: 10px; }
+.dessin .ref { margin-top: 6px; font-size: 20px; line-height: 20px; }
+.dessin .credit { font-size: 20px; line-height: 20px; text-align: center; }
+.dessin.paysage { display: flex; flex-direction: column; }
+.dessin.paysage .oeuvre { flex: none; gap: 4px; }
+.dessin.paysage .bas { flex: 1; display: grid; grid-template-columns: 1fr 16px 1fr; margin-top: 10px; min-height: 0; }
+.dessin.paysage .consigne { font-size: 30px; line-height: 27px; }
+/* lumière du jour */
+.lumiere { flex: 1; display: flex; flex-direction: column; }
+.frise { display: block; }
+.frise text.h { font-family: 'Silkscreen'; font-size: 16px; }
+.legendes { display: flex; gap: 18px; margin: 4px 0 8px; align-items: center; }
+.leg { display: flex; align-items: center; gap: 6px; }
+.leg i { width: 20px; height: 12px; border: 1px solid var(--encre); display: inline-block; }
+.m-clair { background-image: repeating-conic-gradient(var(--encre) 0 25%, transparent 0 100%); background-size: 4px 4px; }
+.m-moyen { background-image: repeating-conic-gradient(var(--encre) 0 25%, transparent 0 50%); background-size: 2px 2px; }
+.m-dense { background: #333; }
+.cartes { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.carte { border-top: 4px double var(--encre); padding-top: 6px; }
+.carte .entete { margin-bottom: 2px; }
+.carte .ligne { display: flex; justify-content: space-between; align-items: baseline; height: 46px; white-space: nowrap; }
+.carte .verdict { white-space: nowrap; }
+.carte .detail { margin-top: 4px; }
+.carte.passe { opacity: 0.45; }
+/* livre à lire */
+.livre { flex: 1; display: grid; grid-template-columns: 300px 16px 1fr; min-height: 0; }
+.livre .couv { display: flex; align-items: center; justify-content: center; }
+.livre .txt { display: flex; flex-direction: column; padding-left: 4px; min-height: 0; }
+.livre .titre { line-height: 0.9; }
+.livre .auteur { margin-top: 10px; }
+.livre .infos { margin-top: 6px; }
+.livre .resume { font-family: 'Instrument Serif'; font-size: 22px; line-height: 1.2; -webkit-font-smoothing: antialiased;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; }
+.livre .theme { font-size: 30px; margin-bottom: 6px; }
+.livre .pied { margin-top: auto; }
+/* mot du jour */
+.mot { flex: 1; display: flex; flex-direction: column; padding: 0 24px; }
+.mot .le-mot { line-height: 0.85; margin-top: 8px; }
+.mot .pron { display: flex; gap: 24px; align-items: baseline; margin: 6px 0 14px; }
+.mot .api { font-family: Georgia, serif; font-size: 26px; -webkit-font-smoothing: antialiased; }
+.mot ol { font-family: 'Instrument Serif'; font-size: 38px; line-height: 1.15; padding-left: 36px; margin: 0;
+  -webkit-font-smoothing: antialiased; }
+.mot .exemple { font-family: 'Instrument Serif'; font-style: italic; font-size: 26px; line-height: 1.2; margin-top: 14px;
+  -webkit-font-smoothing: antialiased; }
+.mot .etym { font-size: 22px; line-height: 24px; margin-top: 14px; }
+.mot .source { margin-top: auto; }
+/* mes stations */
+.stations { flex: 1; display: flex; flex-direction: column; }
+.stations .colonnes { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stations .station { display: flex; flex-direction: column; padding: 0 14px; border-left: 2px dashed var(--encre); }
+.stations .station:first-child { padding-left: 0; border-left: none; }
+.stations .station:last-child { padding-right: 0; }
+.stations .nom { font-size: 38px; height: 34px; line-height: 34px; white-space: nowrap; }
+.stations .vers { display: flex; align-items: center; gap: 6px; height: 30px; margin-bottom: 4px; white-space: nowrap;
+  overflow: hidden; font-size: 24px; background: var(--encre); color: var(--papier); padding: 0 6px; }
+.stations .vers .fleche { font-size: 30px; }
+.stations .departs { height: 168px; }
+.stations .depart { display: flex; justify-content: space-between; align-items: baseline; height: 42px; white-space: nowrap; gap: 6px; }
+.stations .depart .dans { font-size: 44px; }
+.stations .depart.premier { height: 76px; }
+.stations .depart.premier .dans { font-size: 72px; line-height: 76px; }
+.stations .depart .heure { font-size: 26px; }
+.stations .depart small { font-size: 52px; }
+.stations .vide { font-size: 30px; margin-top: 20px; }
+.stations .jour { border-top: 4px double var(--encre); padding-top: 6px; }
+.stations .duo { display: flex; justify-content: space-between; font-size: 32px; line-height: 30px; margin-bottom: 8px; }
+.stations .duo i { display: block; font-style: normal; font-family: 'Silkscreen'; font-size: 12px; line-height: 14px; letter-spacing: 1px; }
+.stations .passe { text-decoration: line-through; }
+.stations .pied { margin-top: 6px; }
+</style>
+</head>
+<body>
+{{CONTENU}}
+</body>
+</html>
