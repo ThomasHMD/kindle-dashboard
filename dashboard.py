@@ -791,8 +791,9 @@ def oeuvre(maintenant, famille, sortie):
     return {"erreur": f"Dessin du jour : recherche en cours ({essais['vus']} essayés)"}
 
 
-def soleil(t):
-    """Hauteur du soleil en degrés au-dessus de l'horizon (formules simplifiées de la NOAA, sans réfraction)."""
+def position_soleil(t):
+    """(hauteur, azimut) du soleil en degrés : hauteur au-dessus de l'horizon, azimut compté du nord vers l'est
+    (formules simplifiées de la NOAA, sans réfraction)."""
     n = t.timestamp() / 86400 + 2440587.5 - 2451545.0
     g = math.radians((357.528 + 0.9856003 * n) % 360)
     lam = math.radians((280.460 + 0.9856474 * n) % 360 + 1.915 * math.sin(g) + 0.020 * math.sin(2 * g))
@@ -801,7 +802,19 @@ def soleil(t):
     ra = math.atan2(math.cos(eps) * math.sin(lam), math.cos(lam))
     ha = math.radians((280.46061837 + 360.98564736629 * n) % 360 + LIEU["lon"]) - ra
     la = math.radians(LIEU["lat"])
-    return math.degrees(math.asin(math.sin(la) * math.sin(dec) + math.cos(la) * math.cos(dec) * math.cos(ha)))
+    h = math.asin(math.sin(la) * math.sin(dec) + math.cos(la) * math.cos(dec) * math.cos(ha))
+    az = math.atan2(math.sin(ha), math.cos(ha) * math.sin(la) - math.tan(dec) * math.cos(la))
+    return math.degrees(h), (math.degrees(az) + 180) % 360
+
+
+def soleil(t):
+    """Hauteur du soleil en degrés au-dessus de l'horizon."""
+    return position_soleil(t)[0]
+
+
+def cap(az):
+    """Direction en clair d'un azimut (16 points, en français)."""
+    return ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"][round(az / 22.5) % 16]
 
 
 def course_du_soleil(maintenant):
@@ -834,25 +847,93 @@ def nuages(maintenant):
                 r["precipitation_probability"][i] or 0, r["weather_code"][i], r["is_day"][i]] for i, t in enumerate(r["time"])}
 
 
-def verdict_ciel(t, ciel):
-    """Ce que le ciel promet pour la photo : les nuages bas bouchent, les nuages hauts ou moyens prennent la couleur
-    du soleil rasant si l'horizon est dégagé."""
-    cles = [(t.replace(minute=0) + dt.timedelta(hours=k)).strftime("%Y-%m-%dT%H:00") for k in (0, 1)]
-    vals = [ciel[c] for c in cles if c in ciel] if isinstance(ciel, dict) and "erreur" not in ciel else []
-    if not vals:
+def ciel_pendant(debut, fin, ciel):
+    """Moyenne (nuages bas, moyens, hauts, risque de pluie) des heures qui touchent [debut, fin] ; None sans prévision."""
+    if not (debut and fin) or not isinstance(ciel, dict) or "erreur" in ciel:
+        return None
+    vals, h = [], debut.replace(minute=0, second=0, microsecond=0)
+    while h <= fin:
+        if h.strftime("%Y-%m-%dT%H:00") in ciel:
+            vals.append(ciel[h.strftime("%Y-%m-%dT%H:00")])
+        h += dt.timedelta(hours=1)
+    return tuple(round(sum(v[i] for v in vals) / len(vals)) for i in range(4)) if vals else None
+
+
+def verdict_ciel(m):
+    """Ce que le ciel promet pour la photo, d'après ciel_pendant() : les nuages bas bouchent, les nuages hauts ou
+    moyens prennent la couleur du soleil rasant si l'horizon est dégagé."""
+    if m is None:
         return "?", "Pas de prévision."
-    bas, moy, haut, pluie = (round(sum(v[i] for v in vals) / len(vals)) for i in range(4))
+    bas, moy, haut, pluie = m
     if pluie >= 50:
         return "PLUIE", "Pluie probable : lumière grise."
     if bas >= 70:
         return "BOUCHÉ", "Nuages bas épais : le soleil ne passera pas."
     if bas < 30 and 30 <= max(moy, haut) <= 80 and pluie < 30:
-        return "PROMETTEUR", "Horizon dégagé, nuages en altitude : ils peuvent prendre la couleur."
+        return "PROMETTEUR", "Horizon dégagé, nuages en altitude : ils peuvent s'embraser."
     if max(bas, moy, haut) < 20:
-        return "NET", "Ciel dégagé : belle lumière, ciel sans couleur."
+        return "NET", "Ciel dégagé : lumière franche, ombres longues, ciel sans couleur."
     if bas >= 30:
         return "MOYEN", "Nuages bas par endroits : quelques trouées possibles."
-    return "MOYEN", "Beaucoup de nuages en altitude : lumière douce, peu de couleur."
+    return "MOYEN", "Voile en altitude : lumière douce, peu de couleur."
+
+
+def fenetres(s):
+    """Les deux moments photo d'une journée : leurs heures bleue et dorée, dans l'ordre où elles arrivent."""
+    return {"matin": {"debut": s["aube_bleue"], "fin": s["fin_or_matin"], "soleil": s["lever"], "mot": "LEVER",
+                      "doree": (s["aube_or"], s["fin_or_matin"]),
+                      "plages": [("BLEUE", s["aube_bleue"], s["aube_or"]), ("DORÉE", s["aube_or"], s["fin_or_matin"])]},
+            "soir": {"debut": s["debut_or_soir"], "fin": s["fin_bleue"], "soleil": s["coucher"], "mot": "COUCHER",
+                     "doree": (s["debut_or_soir"], s["fin_or_soir"]),
+                     "plages": [("DORÉE", s["debut_or_soir"], s["fin_or_soir"]), ("BLEUE", s["fin_or_soir"], s["fin_bleue"])]}}
+
+
+def boussole(maintenant, s, f):
+    """La course du soleil vue du dessus (nord en haut, est à droite) : horizon, anneau du crépuscule jusqu'à -6°,
+    heure dorée en trait épais, heure bleue en tirets, soleil du moment, flèche vers le lever ou le coucher de `f`."""
+    c, R = 125, 98
+    jour = s["aube_bleue"].replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def point(e, az, r=None):
+        r = R * (90 - e) / 90 if r is None else r
+        return c + r * math.sin(math.radians(az)), c - r * math.cos(math.radians(az))
+    svg = [f'<svg width="{2 * c}" height="{2 * c}" viewBox="0 0 {2 * c} {2 * c}" xmlns="http://www.w3.org/2000/svg">',
+           f'<circle cx="{c}" cy="{c}" r="{R * 96 / 90:.1f}" fill="none" stroke="#000" stroke-width="1" stroke-dasharray="3 5"/>',
+           f'<circle cx="{c}" cy="{c}" r="{R}" fill="none" stroke="#000" stroke-width="3"/>']
+    for e in (30, 60):
+        svg.append(f'<circle cx="{c}" cy="{c}" r="{R * (90 - e) / 90:.1f}" fill="none" stroke="#000" stroke-width="1" stroke-dasharray="1 5"/>')
+    for az, nom in ((0, "N"), (90, "E"), (180, "S"), (270, "O")):
+        x, y = point(0, az, R + 18)
+        svg.append(f'<text x="{x:.0f}" y="{y + 6:.0f}" text-anchor="middle" class="cap">{nom}</text>')
+    for az in range(0, 360, 45):
+        (x0, y0), (x1, y1) = point(0, az, R - 6), point(0, az, R + 6)
+        svg.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="#000" stroke-width="2"/>')
+    traits, cur = [], None
+    for m in range(0, 1441, 3):
+        e, az = position_soleil(jour + dt.timedelta(minutes=m))
+        classe = None if e < -6 else "bleue" if e < -4 else "or" if e < 6 else "jour"
+        if classe != cur:
+            if cur and len(traits[-1][1]) == 1:
+                traits.pop()
+            if classe:
+                traits.append((classe, [point(e, az)] if not cur else [traits[-1][1][-1], point(e, az)] if cur else []))
+            cur = classe
+        elif classe:
+            traits[-1][1].append(point(e, az))
+    style = {"jour": 'stroke-width="2"', "or": 'stroke-width="10"', "bleue": 'stroke-width="5" stroke-dasharray="4 4"'}
+    for classe, pts in traits:
+        svg.append(f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="#000" {style[classe]}/>')
+    _, az = position_soleil(f["soleil"])
+    x, y = point(0, az, R - 14)
+    svg.append(f'<line x1="{c}" y1="{c}" x2="{x:.1f}" y2="{y:.1f}" stroke="#000" stroke-width="3"/>')
+    pointe = [point(0, az, R - 2), point(0, az - 8, R - 20), point(0, az + 8, R - 20)]
+    svg.append(f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pointe)}" fill="#000"/>')
+    e, az_m = position_soleil(maintenant)
+    if e >= -6 and maintenant.date() == jour.date():
+        x, y = point(e, az_m)
+        svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="11" fill="#000" stroke="#fff" stroke-width="4"/>')
+    svg.append(f'<circle cx="{c}" cy="{c}" r="3" fill="#000"/></svg>')
+    return "".join(svg), az
 
 
 def heure_photo(maintenant, s):
@@ -1074,73 +1155,47 @@ def ecran_dessin(maintenant, c, k, o, sortie):
 
 
 def ecran_lumiere(maintenant, s, ciel):
-    jour = maintenant.replace(hour=0, minute=0, second=0, microsecond=0)
     if not (s["aube_bleue"] and s["fin_bleue"]):
         return entete("LUMIÈRE DU JOUR") + "<p>Pas d'heure bleue aujourd'hui.</p>"
-    debut = (s["aube_bleue"] - dt.timedelta(minutes=50)).replace(minute=0)
-    fin = (s["fin_bleue"] + dt.timedelta(minutes=70)).replace(minute=0)
-    W, H, haut = 768, 236, 150   # largeur, hauteur du dessin, hauteur de la zone du soleil
-    t0, t1 = (debut - jour).total_seconds() / 60, (fin - jour).total_seconds() / 60
-    x = lambda m: (m - t0) / (t1 - t0) * W  # noqa: E731
-    y = lambda e: haut - (e + 12) / (max(s["courbe"]) + 16) * haut  # noqa: E731
-    mn = lambda t: (t - jour).total_seconds() / 60  # noqa: E731
-    bandes, cur, dep = [], None, int(t0)
-    for m in range(int(t0), int(t1) + 1):
-        e = s["courbe"][m]
-        c = "nuit" if e < -6 else "bleue" if e < -4 else "or" if e < 6 else "jour"
-        if c != cur:
-            if cur:
-                bandes.append((cur, dep, m))
-            cur, dep = c, m
-    bandes.append((cur, dep, int(t1)))
-    motif = {"nuit": "url(#dense)", "bleue": "url(#moyen)", "or": "url(#clair)"}
-    svg = [f'<svg class="frise" width="{W}" height="{H}" viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg">',
-           '<defs><pattern id="dense" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height="2"/>'
-           '<rect width="1" height="1" fill="#fff"/></pattern><pattern id="moyen" width="2" height="2" '
-           'patternUnits="userSpaceOnUse"><rect width="1" height="1"/><rect x="1" y="1" width="1" height="1"/></pattern>'
-           '<pattern id="clair" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="1" height="1"/>'
-           '<rect x="2" y="2" width="1" height="1"/></pattern></defs>']
-    for c, a, b in bandes:
-        if c in motif:
-            svg.append(f'<rect x="{x(a):.1f}" y="0" width="{x(b) - x(a):.1f}" height="{haut}" fill="{motif[c]}"/>')
-    svg.append(f'<line x1="0" x2="{W}" y1="{y(0):.1f}" y2="{y(0):.1f}" stroke="#000" stroke-width="2"/>')
-    pts = " ".join(f"{x(m):.1f},{y(s['courbe'][m]):.1f}" for m in range(int(t0), int(t1) + 1, 4))
-    svg.append(f'<polyline points="{pts}" fill="none" stroke="#fff" stroke-width="7"/>'
-               f'<polyline points="{pts}" fill="none" stroke="#000" stroke-width="3"/>')
-    if isinstance(ciel, dict) and "erreur" not in ciel:  # le ciel heure par heure, l'icône météo de chaque heure
-        for cle, v in ciel.items():
-            if cle.startswith(f"{maintenant:%Y-%m-%d}"):
-                xc = x(mn(dt.datetime.fromisoformat(cle).replace(tzinfo=PARIS)) + 30)
-                if 12 <= xc <= W - 12:
-                    svg.append(icone(nom_icone(v[4], v[5]), 24).replace("<svg ", f'<svg x="{xc - 12:.1f}" y="{haut + 14}" ', 1))
-    for hr in range(debut.hour, fin.hour + 1):
-        xx = x(hr * 60)
-        svg.append(f'<line x1="{xx:.1f}" x2="{xx:.1f}" y1="{haut + 56}" y2="{haut + 62}" stroke="#000" stroke-width="2"/>')
-        if hr % 2 == 0 and 16 < xx < W - 16:
-            svg.append(f'<text x="{xx:.1f}" y="{H - 2}" text-anchor="middle" class="h">{hr}H</text>')
-    if debut <= maintenant <= fin:
-        xm = x(mn(maintenant))
-        svg.append(f'<line x1="{xm:.1f}" x2="{xm:.1f}" y1="0" y2="{haut + 56}" stroke="#000" stroke-width="3"/>'
-                   f'<polygon points="{xm - 7:.1f},0 {xm + 7:.1f},0 {xm:.1f},9" fill="#000"/>')
-    svg.append("</svg>")
     hm = lambda t: t.strftime("%H:%M") if t else "–"  # noqa: E731
-
-    def carte(titre, ors, bleue, quand, passe):
-        v, pourquoi = verdict_ciel(quand, ciel)
-        return (f'<div class="carte{" passe" if passe else ""}"><div class="entete"><span class="tag">{titre}</span>'
-                f'<span class="s24 gras verdict">{v}</span></div>'
-                f'<div class="ligne"><span class="s16 gras">DORÉE</span><span class="v50">{ors}</span></div>'
-                f'<div class="ligne"><span class="s16 gras">BLEUE</span><span class="v50">{bleue}</span></div>'
-                f'<div class="detail">{esc(pourquoi)}</div></div>')
-    matin = carte("MATIN", f'{hm(s["aube_or"])} › {hm(s["fin_or_matin"])}', f'{hm(s["aube_bleue"])} › {hm(s["aube_or"])}',
-                  s["lever"], s["fin_or_matin"] and maintenant > s["fin_or_matin"])
-    soir = carte("SOIR", f'{hm(s["debut_or_soir"])} › {hm(s["fin_or_soir"])}', f'{hm(s["fin_or_soir"])} › {hm(s["fin_bleue"])}',
-                 s["coucher"], maintenant > s["fin_bleue"])
-    legende = ('<span class="leg"><i class="m-clair"></i>DORÉE</span><span class="leg"><i class="m-moyen"></i>BLEUE</span>'
-               '<span class="leg"><i class="m-dense"></i>NUIT</span><span class="leg">EN DESSOUS : LE CIEL HEURE PAR HEURE</span>')
+    f = fenetres(s)
+    if maintenant < f["matin"]["fin"]:
+        jour, quand, principal, autre, autre_quand, autre_passe = s, "CE MATIN", f["matin"], f["soir"], "CE SOIR", False
+    elif maintenant < f["soir"]["fin"]:
+        jour, quand, principal, autre, autre_quand, autre_passe = s, "CE SOIR", f["soir"], f["matin"], "CE MATIN", True
+    else:  # la journée est finie : le prochain moment est demain matin
+        jour = course_du_soleil(maintenant + dt.timedelta(days=1))
+        quand, principal, autre, autre_quand, autre_passe = "DEMAIN MATIN", fenetres(jour)["matin"], f["soir"], "CE SOIR", True
+    if maintenant < principal["debut"]:
+        reste = int((principal["debut"] - maintenant).total_seconds() // 60)
+        compte = f"DANS {reste // 60} H {reste % 60:02d}" if reste >= 60 else f"DANS {reste} MIN"
+    else:
+        compte = "MAINTENANT"
+    m = ciel_pendant(*principal["doree"], ciel)
+    verdict, phrase = verdict_ciel(m)
+    plages = "".join(f'<div class="ligne"><span class="s16 gras">{nom}</span><span class="v50">{hm(a)} › {hm(b)}</span></div>'
+                     for nom, a, b in principal["plages"])
+    dessin, az = boussole(maintenant, jour, principal)
+    heros = (f'<div class="heros"><div class="entete"><span class="tag">{quand}</span><span class="s24 gras">{compte}</span></div>'
+             f'<div class="grand">{verdict}</div>{plages}<div class="phrase">{esc(phrase)}</div></div>')
+    rose = (f'<div class="rose">{dessin}<div class="s16 gras">{principal["mot"]} {cap(az)} {az:.0f}°</div></div>')
+    if m:
+        # étages d'Open-Meteo : bas jusqu'à 3 km, moyens de 3 à 8 km, hauts au-dessus
+        sens = (("NUAGES BAS", "sous 3 km : cachent le soleil"), ("NUAGES MOYENS", "3 à 8 km : se colorent"),
+                ("NUAGES HAUTS", "plus haut : s'embrasent"), ("RISQUE DE PLUIE", ""))
+        jauges = "".join(f'<span class="s16 gras">{nom}</span><div class="barre-pleine"><i style="width:{v}%"></i></div>'
+                         f'<span class="pc">{v} %</span><span class="role">{role}</span>' for (nom, role), v in zip(sens, m))
+    else:
+        jauges = '<span>pas de prévision des nuages</span>'
+    nuages = (f'<div class="nuages"><div class="s16 gras">PART DU CIEL COUVERT PENDANT L\'HEURE DORÉE</div>'
+              f'<div class="jauges">{jauges}</div></div>')
+    v_autre, _ = verdict_ciel(ciel_pendant(*autre["doree"], ciel))
+    d_or = autre["doree"]
+    ligne_autre = (f'<div class="autre"><span class="s16 gras">{autre_quand}{" (PASSÉ)" if autre_passe else ""}</span>'
+                   f'<span>{v_autre} · dorée {hm(d_or[0])} › {hm(d_or[1])}</span></div>')
     droite = f'<span class="s16">LEVER {hm(s["lever"])} · COUCHER {hm(s["coucher"])}</span>'
-    return (f'<section class="lumiere">{entete("LUMIÈRE DU JOUR", droite)}{"".join(svg)}'
-            f'<div class="legendes s16">{legende}</div><div class="cartes">{matin}{soir}</div></section>')
+    return (f'<section class="lumiere">{entete("LUMIÈRE DU JOUR", droite)}<div class="haut">{heros}{rose}</div>'
+            f'{nuages}{ligne_autre}</section>')
 
 
 def ecran_livre(maintenant, b, sortie):
