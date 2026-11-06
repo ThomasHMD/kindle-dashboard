@@ -159,6 +159,18 @@ img.t16 { display: block; image-rendering: pixelated; }
 .lumiere .jauges .role { padding-left: 6px; }
 .lumiere .barre-pleine { flex: 1; height: 12px; border: 2px solid var(--encre); }
 .lumiere .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+/* avions au-dessus de chez moi */
+.avions { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.avions .haut { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 0; }
+.avions .heros { flex: 1; display: flex; flex-direction: column; height: auto; gap: 2px; align-items: flex-start; min-width: 0; }
+.avions .ville { font-size: 75px; line-height: 70px; white-space: nowrap; overflow: hidden; max-width: 100%; }
+.avions .fleche { margin: 2px 0; }
+.avions .fiche { margin-top: 10px; }
+.avions .radar { flex: none; }
+.avions .radar .cap { font-family: 'Silkscreen'; font-weight: 700; font-size: 16px; }
+.avions .double { margin: 4px 0 4px; }
+.avions .suivants { display: grid; grid-template-columns: 150px 1fr 104px 186px; gap: 0 12px; line-height: 23px; white-space: nowrap; }
+.avions .suivants .coupe { overflow: hidden; }
 /* activité, fin de journée, article insolite */
 .activite, .fin { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .activite .deux, .fin .deux { flex: 1; display: grid; grid-template-columns: 1fr 16px 1fr; min-height: 0; }
