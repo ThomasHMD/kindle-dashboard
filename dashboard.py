@@ -600,7 +600,7 @@ def ecran_citation(maintenant, q):
     n = len(q["texte"])
     taille = 64 if n <= 80 else 52 if n <= 150 else 44
     return (f'<section class="citation"><div class="ouvrant">«</div>'
-            f'<blockquote style="font-size:{taille}px">{esc(q["texte"])} »</blockquote>'
+            f'<blockquote style="font-size:{taille}px">{esc(q["texte"])}&nbsp;»</blockquote>'
             f'<div class="filet"></div><cite class="s24 gras">{esc(q["auteur"].upper())}</cite>'
             f'<div class="source">Wikiquote, citation du jour du {esc(q["jour"])}</div></section>')
 
