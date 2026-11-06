@@ -596,12 +596,14 @@ def avions(maintenant, sortie):
     """Les avions en vol autour du lieu, du plus proche au plus loin, avec d'où ils viennent et où ils vont si on le
     sait. Position arrondie à 1 km environ dans les requêtes. Routes gardées la journée."""
     lat, lon = round(LIEU["lat"], 2), round(LIEU["lon"], 2)
+    r = None  # un ciel vide se fait confirmer par la seconde source (« aucun avion » à tort au-dessus de Lille, 01/01/2026)
     for n, modele in enumerate(ADSB):
         try:
             r = appel(modele.format(lat=lat, lon=lon))
-            break
+            if r.get("ac") or r.get("aircraft"):
+                break
         except (urllib.error.URLError, TimeoutError, ValueError):
-            if n == len(ADSB) - 1:
+            if n == len(ADSB) - 1 and r is None:
                 raise
     en_vol = []
     for a in r.get("ac") or r.get("aircraft") or []:
