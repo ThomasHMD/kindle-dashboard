@@ -159,6 +159,18 @@ img.t16 { display: block; image-rendering: pixelated; }
 .lumiere .jauges .role { padding-left: 6px; }
 .lumiere .barre-pleine { flex: 1; height: 12px; border: 2px solid var(--encre); }
 .lumiere .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+/* bornes à verre */
+.verre { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.verre .heros { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: stretch; height: auto; gap: 4px; min-height: 0; }
+.verre .rue { font-size: 50px; line-height: 46px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.verre .grand { display: flex; justify-content: space-between; font-size: 88px; line-height: 84px; }
+.verre .barre-pleine { height: 12px; border: 2px solid var(--encre); }
+.verre .heros .barre-pleine { height: 20px; }
+.verre .barre-pleine i { display: block; height: 100%; background: var(--encre); }
+.verre .double { margin: 6px 0 4px; }
+.verre .liste { display: grid; grid-template-columns: 1fr 116px 110px 50px 146px; gap: 0 10px; align-items: center; line-height: 23px; white-space: nowrap; }
+.verre .liste .coupe { overflow: hidden; text-overflow: ellipsis; }
+.verre .liste .pc { text-align: right; }
 /* avions au-dessus de chez moi */
 .avions { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .avions .haut { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 0; }

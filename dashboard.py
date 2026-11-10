@@ -33,6 +33,7 @@ import io
 import json
 import math
 import os
+import random
 import re
 import sys
 import time
@@ -59,20 +60,20 @@ MODELES = {"k4": (600, 800), "k5": (600, 800), "touch": (600, 800), "pw1": (758,
 PLAYLIST = {
     "matin": ("06:30", "09:00", [("meteo", 360), ("stations", 360), ("agenda", 360), ("lumiere", 300), ("courrier", 240),
                                  ("air", 180), ("mot", 240), ("citation", 180)]),
-    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("activite", 240), ("air", 240),
+    "journee": ("09:00", "19:00", [("meteo", 480), ("agenda", 360), ("courrier", 300), ("reseaux", 240), ("activite", 240), ("air", 240), ("verre", 180),
                                    ("stations", 360), ("avions", 240), ("dessin", 360), ("lumiere", 360), ("livre", 240), ("mot", 240),
                                    ("citation", 180), ("insolite", 240), ("fin", 300)]),
-    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("fin", 240), ("avions", 240), ("dessin", 480), ("livre", 360),
+    "soiree": ("19:00", "23:00", [("meteo", 300), ("stations", 360), ("agenda", 240), ("fin", 240), ("avions", 240), ("verre", 180), ("dessin", 480), ("livre", 360),
                                   ("insolite", 300), ("mot", 240), ("citation", 180)]),
     "nuit": ("23:00", "06:30", [("demain", 1800)]),
 }
 IMMINENT = 45  # minutes avant une sortie : l'écran Stations reste affiché, la rotation s'arrête
-PLEIN = ("meteo", "air", "activite", "citation", "insolite", "fin", "stations", "avions", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
+PLEIN = ("meteo", "air", "verre", "activite", "citation", "insolite", "fin", "stations", "avions", "lumiere", "dessin", "livre", "mot")  # écrans sans la colonne météo
 # Flash complet en arrivant sur un écran (les écrans conditionnels changent l'enchaînement : une disposition peut en
 # suivre une autre n'importe où) ; partiel pour la mise à jour d'un écran qui reste.
-COMPLET_A = ("meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
+COMPLET_A = ("meteo", "air", "verre", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
              "insolite", "fin", "demain")
-NAVIGATION = ["meteo", "air", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
+NAVIGATION = ["meteo", "air", "verre", "agenda", "courrier", "reseaux", "activite", "stations", "avions", "lumiere", "dessin", "livre", "mot", "citation",
               "insolite", "fin", "demain"]  # ordre des boutons de la liseuse
 HEURE_FIN = 17  # à partir de cette heure, l'écran Fin de journée entre dans le cycle
 RETIRAGE = 13  # heure du second tirage du jour : dessin, livre, mot et citation changent pour l'après-midi
@@ -95,6 +96,9 @@ AIR = "https://air-quality-api.open-meteo.com/v1/air-quality"
 ADSB = ("https://api.adsb.lol/v2/lat/{lat}/lon/{lon}/dist/25", "https://opendata.adsb.fi/api/v2/lat/{lat}/lon/{lon}/dist/25")
 ADSBDB = "https://api.adsbdb.com/v0/"
 RAYON_RADAR = 46  # km
+# Bornes à verre de la Métropole de Lille : emplacement, niveau mesuré par capteur, dernière collecte (Licence Ouverte).
+BORNES_VERRE = "https://data.lillemetropole.fr/geoserver/ogc/features/v1/collections/mel_environnement_energie:pav_etat_parc/items"
+BORNE_PLEINE = 80  # % à partir duquel mieux vaut viser la voisine
 # Le genre d'appareil en clair, d'après la catégorie ADS-B.
 CATEGORIES_AVION = {"A1": "Petit avion", "A2": "Avion léger", "A3": "Avion de ligne", "A4": "Gros porteur", "A5": "Gros porteur",
                     "A7": "Hélicoptère", "B1": "Planeur", "B2": "Ballon", "B4": "ULM", "B6": "Drone"}
@@ -134,8 +138,9 @@ STATIONS = CONFIG.get("stations", [])
 # Écran Activité : {"chaine": id YouTube, "instagram": id du compte, "ventes": data source Notion, "listes": [ids Brevo]}
 ACTIVITE = CONFIG.get("activite", {})
 SOCIAL_DAILY = CONFIG.get("abonnes", "")  # table n8n des relevés quotidiens d'abonnés (API data-tables)
+EN_ATTENTE = {"verre"}  # écrans prêts mais pas mis en service : gardés pour une prochaine version, à retirer d'ici pour les activer
 # Écrans sans réglage, ou retirés dans la config : hors des boutons et de la rotation.
-INACTIFS = set(CONFIG.get("ecrans_retires", [])) | {e for e, manque in (
+INACTIFS = EN_ATTENTE | set(CONFIG.get("ecrans_retires", [])) | {e for e, manque in (
     ("stations", not STATIONS), ("livre", not BIBLIOTHEQUE), ("reseaux", not SOCIAL_DAILY),
     ("activite", not any(ACTIVITE.values()))) if manque}
 NAVIGATION = [e for e in NAVIGATION if e not in INACTIFS]
@@ -171,17 +176,37 @@ def appel(url, entetes=None, donnees=None):
         return json.load(r)
 
 
+def ordre_du_tour(liste, graine, n):
+    """Les écrans du tour n dans un ordre tiré de la graine (même graine, même ordre : le serveur recalcule chaque
+    minute sans rien garder). Les écrans de la fin du tour précédent (un tiers) ne peuvent pas ouvrir celui-ci :
+    entre deux passages du même écran, il y en a toujours au moins un tiers d'autres."""
+    precedent, garde = [], len(liste) // 3
+    for k in range(n + 1):
+        tour = list(liste)
+        random.Random(f"{graine}-{k}").shuffle(tour)
+        fin = {x[0] for x in precedent[len(precedent) - garde:]} if garde else set()
+        tete = [x for x in tour if x[0] not in fin][:garde]
+        precedent = tete + [x for x in tour if x not in tete]
+    return precedent
+
+
 def plage_du_moment(maintenant, sauf=()):
-    """(nom de la plage, panneau du moment, rang dans le cycle). La plage nuit enjambe minuit. Les écrans de `sauf`
-    (rien à montrer) sortent du cycle, qui raccourcit d'autant."""
+    """(nom de la plage, panneau du moment, rang dans le tour). La plage nuit enjambe minuit. Les écrans de `sauf`
+    (rien à montrer) sortent du cycle, qui raccourcit d'autant. Le plus d'alternance possible (01/01/2026) : chaque
+    tour de la plage passe tous ses écrans dans un ordre nouveau, tiré du jour, de la plage et du numéro du tour,
+    sans qu'un écran de la fin d'un tour ouvre le suivant ; et le premier tour part d'un point différent
+    chaque jour. Un écran ne revient donc ni aux mêmes heures ni dans le même enchaînement."""
     minutes = maintenant.hour * 60 + maintenant.minute
     for nom, (debut, fin, liste) in PLAYLIST.items():
         liste = [x for x in liste if x[0] not in sauf] or liste
         d, f = (int(x[:2]) * 60 + int(x[3:]) for x in (debut, fin))
         if (d <= minutes < f) if d < f else (minutes >= d or minutes < f):
             ecoule = ((minutes - d) % 1440) * 60 + maintenant.second
-            t = ecoule % sum(s for _, s in liste)
-            for rang, (panneau, duree) in enumerate(liste):
+            jour = (maintenant - dt.timedelta(minutes=(minutes - d) % 1440)).date().toordinal()
+            total = sum(s for _, s in liste)
+            n, t = divmod(ecoule + (jour * 7919 * 60) % total, total)
+            tour = ordre_du_tour(liste, f"{jour}-{nom}", n)
+            for rang, (panneau, duree) in enumerate(tour):
                 if t < duree:
                     return nom, panneau, rang
                 t -= duree
@@ -633,6 +658,20 @@ def avions(maintenant, sortie):
     return {"avions": liste}
 
 
+def bornes_verre(maintenant):
+    """Les bornes à verre à moins de 2 km environ, de la plus proche à la plus loin (distance à vol d'oiseau). Le
+    rectangle demandé est arrondi au kilomètre : la position exacte ne quitte pas le Mac."""
+    lat, lon = round(LIEU["lat"], 2), round(LIEU["lon"], 2)
+    q = urllib.parse.urlencode({"f": "application/json", "limit": 300, "filter-lang": "cql-text", "filter": "type_flux='VERRE'",
+                                "bbox": f"{lon - 0.03:.2f},{lat - 0.02:.2f},{lon + 0.03:.2f},{lat + 0.02:.2f}"})
+    bornes = []
+    for f in appel(f"{BORNES_VERRE}?{q}")["features"]:
+        p, (x, y) = f["properties"], f["geometry"]["coordinates"]
+        bornes.append({"adresse": latin(p.get("adresse") or "?"), "commune": latin(p.get("commune") or ""), "dist": geo(LIEU["lat"], LIEU["lon"], y, x)[0] * 1000,
+                       "niveau": p.get("dernier_niveau_remplissage"), "mesure": p.get("date_derniere_mesure"), "collecte": p.get("date_collecte")})
+    return {"bornes": sorted(bornes, key=lambda b: b["dist"])[:8]}
+
+
 def citation(maintenant):
     """Le matin, la citation du jour de Wikiquote si elle existe pour cette date ; sinon, et l'après-midi, une de la
     banque choisie d'après le tirage du moment."""
@@ -815,7 +854,7 @@ def ecran(maintenant, panneau, contenu, meteo_html=None, importants=0):
     points = "".join(f'<i class="{"ici" if p == panneau else ""}"></i>' for p in NAVIGATION)
     quoi = POUBELLES.get(maintenant.weekday())  # la veille du ramassage, toute la journée
     rappel = f'<span class="badge rappel">{icone("poubelle", 16)}<span class="s16 gras">{quoi}</span></span>' if quoi else ""
-    # Place comptée (16 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
+    # Place comptée (17 écrans aux boutons) : avec un badge, « RELEVÉ » tombe et la date s'abrège si besoin.
     jours, mois = (JOURS_COURTS, MOIS_COURTS) if rappel and badge else (JOURS, MOIS_COURTS) if rappel else (JOURS, MOIS)
     if badge and not rappel and len(f"{JOURS[maintenant.weekday()]} {maintenant.day} {MOIS[maintenant.month - 1]}") > 18:
         mois = MOIS_COURTS
@@ -1483,6 +1522,47 @@ def ecran_air(maintenant, a):
     return f'<section class="lumiere air"><div class="haut">{heros}{courbe}</div>{polluants}{bas}</section>'
 
 
+def nom_rue(t):
+    """RUE DE LA CHASSE → Rue de la Chasse."""
+    t = re.sub(r"\b(De|Du|Des|La|Le|Les|Et|Au|Aux|En)\b", lambda m: m.group(1).lower(), t.title())
+    return re.sub(r"\bD'", "d'", re.sub(r"\bL'", "l'", t))[:1].upper() + re.sub(r"\bD'", "d'", re.sub(r"\bL'", "l'", t))[1:]
+
+
+def depuis(iso, maintenant):
+    """« aujourd'hui », « hier », « il y a 3 jours » pour une date ISO, « ? » sans date."""
+    if not iso:
+        return "?"
+    n = (maintenant.date() - dt.datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(PARIS).date()).days
+    return "aujourd'hui" if n <= 0 else "hier" if n == 1 else f"il y a {n} jours"
+
+
+def ecran_verre(maintenant, v):
+    titre = "VERRE PRÈS DE CHEZ MOI"
+    if "erreur" in v:
+        return entete(titre) + f'<p>{esc(v["erreur"])}</p>'
+    bornes = v["bornes"]
+    if not bornes:
+        return entete(titre) + "<p>Aucune borne connue dans le coin.</p>"
+    mesurees = [b for b in bornes if b["niveau"] is not None]
+    choix = next((b for b in mesurees if b["niveau"] < BORNE_PLEINE), bornes[0])
+    metres = lambda b: f'{round(b["dist"] / 10) * 10:.0f} m' if b["dist"] < 1000 else f'{b["dist"] / 1000:.1f} km'.replace(".", ",")  # noqa: E731
+    pc = lambda b: "–" if b["niveau"] is None else f'{b["niveau"]:.0f} %'  # noqa: E731
+    jauge = lambda b: min(b["niveau"] or 0, 100)  # noqa: E731
+    plus_pres = "" if choix is bornes[0] else (f'<div>{esc(nom_rue(bornes[0]["adresse"]))}, plus près ({metres(bornes[0])}), '
+                                               f'est presque pleine.</div>')
+    heros = (f'<div class="s16 gras">{"LA PLUS PROCHE AVEC DE LA PLACE" if choix["niveau"] is not None else "LA PLUS PROCHE"}</div>'
+             f'<div class="rue">{esc(nom_rue(choix["adresse"]))}</div>'
+             f'<div class="grand"><span>{metres(choix)}</span><span class="niveau">{pc(choix)}</span></div>'
+             f'<div class="barre-pleine"><i style="width:{jauge(choix)}%"></i></div>'
+             f'<div>vidée {depuis(choix["collecte"], maintenant)} · mesure {depuis(choix["mesure"], maintenant)}</div>{plus_pres}')
+    lignes = "".join(f'<span class="coupe">{esc(nom_rue(b["adresse"]))}</span><span>{metres(b)}</span>'
+                     f'<div class="barre-pleine"><i style="width:{jauge(b)}%"></i></div><span class="pc">{pc(b)}</span>'
+                     f'<span>{depuis(b["collecte"], maintenant)}</span>' for b in bornes[:6] if b is not choix)
+    titres = "".join(f'<span class="s16 gras">{t}</span>' for t in ("LES AUTRES", "DISTANCE", "REMPLIE", "", "VIDÉE"))
+    return (f'<section class="verre">{entete(titre, "<span class=s16>À VOL D\'OISEAU</span>")}<div class="heros">{heros}</div>'
+            f'<div class="double"></div><div class="liste">{titres}{lignes}</div></section>')
+
+
 def radar(liste, heros):
     """Le ciel vu du dessus, nord en haut, moi au centre : rose des vents autour, chaque avion et le sens de son vol."""
     c, R = 170, 142
@@ -1777,6 +1857,7 @@ def main():
         "reseaux": lambda: en_cache(args.sortie, "reseaux", ttl(10800), reseaux, maintenant),
         "air": lambda: en_cache(args.sortie, "air", ttl(3600), air, maintenant),
         "citation": lambda: sur(citation, maintenant),
+        "verre": lambda: en_cache(args.sortie, "verre", ttl(1800), bornes_verre, maintenant),
         "avions": lambda: en_cache(args.sortie, "avions", ttl(180 if 7 <= maintenant.hour < 23 else 3600), avions, maintenant, args.sortie),
         "video": lambda: en_cache(args.sortie, "video", ttl(1800), derniere_video, maintenant),
         "reel": lambda: en_cache(args.sortie, "reel", ttl(1800), dernier_reel, maintenant),
@@ -1815,6 +1896,7 @@ def main():
         "activite": lambda: ecran_activite(maintenant, *(sources[x]() for x in ("video", "reel", "ventes", "inscrits"))),
         "insolite": lambda: ecran_insolite(maintenant, sources["insolite"](), args.sortie),
         "avions": lambda: ecran_avions(maintenant, sources["avions"]()),
+        "verre": lambda: ecran_verre(maintenant, sources["verre"]()),
         "fin": lambda: ecran_fin(maintenant, m, sources["agenda"]()),
         "agenda": lambda: panneau_agenda(maintenant, sources["agenda"]()),
         "courrier": lambda: panneau_courrier(maintenant, c),
