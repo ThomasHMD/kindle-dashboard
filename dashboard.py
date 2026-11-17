@@ -1858,7 +1858,7 @@ def main():
         "air": lambda: en_cache(args.sortie, "air", ttl(3600), air, maintenant),
         "citation": lambda: sur(citation, maintenant),
         "verre": lambda: en_cache(args.sortie, "verre", ttl(1800), bornes_verre, maintenant),
-        "avions": lambda: en_cache(args.sortie, "avions", ttl(180 if 7 <= maintenant.hour < 23 else 3600), avions, maintenant, args.sortie),
+        "avions": lambda: en_cache(args.sortie, "avions", ttl(180 if maintenant.hour >= 7 else 3600), avions, maintenant, args.sortie),
         "video": lambda: en_cache(args.sortie, "video", ttl(1800), derniere_video, maintenant),
         "reel": lambda: en_cache(args.sortie, "reel", ttl(1800), dernier_reel, maintenant),
         "ventes": lambda: en_cache(args.sortie, "ventes", ttl(600), ventes_recentes, maintenant),
