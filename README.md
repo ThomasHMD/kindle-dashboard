@@ -1,16 +1,18 @@
+**English** | [Français](README.fr.md)
+
 # Kindle dashboard
 
-**Mon vieux Kindle 4 est devenu un écran d'affichage permanent : météo, qualité de l'air, agenda, courrier, tram et métro en direct, dessin du jour, lumière pour la photo, mot du jour, citation, article insolite de Wikipédia, récap de fin de journée, et les chiffres de mon activité.**
+**My old Kindle 4 is now an always-on e-ink display and dashboard: weather, air quality, calendar, mail, live tram and metro times, drawing of the day, light for photography, word of the day, quote, odd Wikipedia article, end-of-day recap, and my activity numbers.**
 
-Mon Mac fabrique les images, la liseuse ne fait que les afficher. Chaque minute, un script rassemble les données, remplit une page HTML, la photographie avec Chromium à la taille exacte de la dalle et la passe en 16 niveaux de gris. La liseuse, jailbreakée et branchée sur un chargeur, lit l'état du Mac en wifi toutes les 20 secondes et ne télécharge l'écran que s'il a changé. Style néo-rétro : polices pixel à leurs tailles natives, titres inversés, trames, aucun texte gris.
+My Mac makes the images, the e-reader only shows them. Every minute, a script gathers the data, fills in an HTML page, photographs it with Chromium at the exact size of the panel and converts it to 16 grays. The jailbroken Kindle, plugged into a charger, reads the Mac's state over wifi every 20 seconds and only downloads the screen if it changed. Neo-retro style: pixel fonts at their native sizes, inverted titles, dither patterns, no gray text.
 
-<img src="assets/apercu.png" width="800" alt="Six écrans du dashboard : météo, agenda, stations, lumière, dessin du jour, mot du jour">
+<img src="assets/apercu.png" width="800" alt="Six dashboard screens: weather, calendar, stations, daylight, drawing of the day, word of the day">
 
-*Écrans fabriqués par `demo.py`, sans aucun compte (agenda fictif). Sur la liseuse, ils sortent en 800 × 600, 16 gris, tournés dans le sens de la dalle.*
+*Screens made by `demo.py`, without any account (fictional calendar). On the Kindle, they come out at 800 × 600, 16 grays, rotated to match the panel.*
 
-> Je suis Thomas Hammoudi, photographe. J'ai construit tout ça avec Claude Code, en 2026. Les textes et le code sont en français.
+> I'm Thomas Hammoudi, a photographer. I built all of this with Claude Code, in 2026. The code and the other documents are in French.
 
-## Essayer en deux minutes, sans liseuse
+## Try it in two minutes, without a Kindle
 
 ```bash
 git clone https://github.com/ThomasHMD/kindle-dashboard
@@ -20,154 +22,150 @@ python3 -m playwright install chromium
 python3 demo.py
 ```
 
-Les écrans arrivent dans `demo/` : `apercu-<écran>.png` (paysage, pour l'œil) et `ecran-<écran>.png` (tourné, le fichier que la liseuse affiche). Sans `config.json`, `demo.py` prend les réglages de [`config.exemple.json`](config.exemple.json) : météo de Lille, trois stations du réseau ilévia, aucun agenda ni courrier réel.
+The screens land in `demo/`: `apercu-<screen>.png` (landscape, for the eye) and `ecran-<screen>.png` (rotated, the file the Kindle displays). Without a `config.json`, `demo.py` uses the settings from [`config.exemple.json`](config.exemple.json): Lille weather, three stops of the ilévia network, no real calendar or mail.
 
-## Les écrans
+## The screens
 
-| Écran | Ce qu'il montre | Source | Il faut |
+| Screen | What it shows | Source | Needs |
 |---|---|---|---|
-| Météo | maintenant, ressenti, vent, pluie, la journée de 2 h en 2 h, 7 jours, lever et coucher, phase de la lune | [Open-Meteo](https://open-meteo.com/) | rien |
-| Qualité de l'air | indice européen et son niveau, conseil, polluant en cause, indice sur 24 h, particules, dioxyde d'azote et ozone expliqués à l'écran, meilleure heure pour aérer, pollens en saison | [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | rien |
-| Agenda | rendez-vous d'aujourd'hui et de demain, passés retirés | Google Agenda, lecture seule | un client OAuth, `autoriser.py` |
-| Courrier | mails non lus que Gmail marque « Important », écran sauté s'il n'y en a pas | Gmail, lecture seule | idem |
-| Abonnés | abonnés par réseau, gain par jour sur 30 jours | une table [n8n](https://n8n.io/) remplie chaque jour par un workflow | `N8N_API_KEY`, facultatif |
-| Mon activité | dernière vidéo YouTube longue et dernier reel avec leurs vues ; ventes et nouveaux inscrits du jour, sur 7 jours et du mois | YouTube, API Instagram, une base Notion, Brevo | les clés de chaque source, facultatif, voir `activite` |
-| Mes stations | 3 prochains départs, direction, premier et dernier départ du jour, premier et dernier retour | ilévia (Lille) : temps réel et GTFS | rien |
-| Lumière du jour | prochain moment photo (ce matin, ce soir ou demain matin) et son verdict (net, prometteur, moyen, bouché, pluie), heures bleue et dorée, boussole de la course du soleil, part du ciel couvert par étage de nuages pendant l'heure dorée, chaque étage expliqué à l'écran | calcul local (formules NOAA) et Open-Meteo | rien |
-| Dessin du jour | un concept, une consigne de 10 à 30 min, un dessin ancien du domaine public | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | rien (Notion, facultatif) |
-| Livre à lire | un livre de ma bibliothèque que je n'ai pas encore lu, couverture tramée | une base Notion | `NOTION_TOKEN`, facultatif |
-| Mot du jour | mot, prononciation, définitions, exemple, étymologie | [Wiktionnaire](https://fr.wiktionary.org/) | rien |
-| Citation | le matin la citation du jour de Wikiquote si elle existe, sinon une de la banque | [`citations.json`](citations.json) | rien |
-| Avions | les avions qui passent autour de chez moi : d'où ils viennent, où ils vont, compagnie, altitude, vitesse, radar vu du dessus, 4 vols suivants ; un trajet incohérent avec la position est écarté | [adsb.lol](https://www.adsb.lol/), [adsbdb](https://www.adsbdb.com/) | rien |
-| Article insolite | un article de la page « Articles insolites » de Wikipédia, sa ligne de présentation, son résumé et son image | [`insolites.json`](insolites.json), API Wikipédia | rien |
-| Fin de journée | à partir de 17 h : météo de demain, premier rendez-vous, poubelles à sortir | Open-Meteo, Google Agenda | idem Agenda |
-| Demain | la nuit, les rendez-vous du lendemain | Google Agenda | idem Agenda |
+| Weather | now, feels-like, wind, rain, the day in 2-hour steps, 7 days, sunrise and sunset, moon phase | [Open-Meteo](https://open-meteo.com/) | nothing |
+| Air quality | European index and its level, advice, main pollutant, 24-hour index, particles, nitrogen dioxide and ozone explained on screen, best time to air the house, pollen in season | [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | nothing |
+| Calendar | today's and tomorrow's appointments, past ones removed | Google Calendar, read-only | an OAuth client, `autoriser.py` |
+| Mail | unread mails that Gmail marks "Important", screen skipped if there are none | Gmail, read-only | same |
+| Subscribers | subscribers per network, daily gain over 30 days | an [n8n](https://n8n.io/) table filled every day by a workflow | `N8N_API_KEY`, optional |
+| My activity | latest long YouTube video and latest reel with their views; sales and new sign-ups of the day, over 7 days and for the month | YouTube, Instagram API, a Notion database, Brevo | the keys for each source, optional, see `activite` |
+| My stops | next 3 departures, direction, first and last departure of the day, first and last return | ilévia (Lille): real time and GTFS | nothing |
+| Daylight | next photo moment (this morning, this evening or tomorrow morning) and its verdict (clear, promising, average, blocked, rain), blue and golden hours, compass of the sun's path, share of sky covered per cloud layer during the golden hour, each layer explained on screen | local calculation (NOAA formulas) and Open-Meteo | nothing |
+| Drawing of the day | a concept, a 10 to 30 minute prompt, an old public-domain drawing | [`consignes-dessin.json`](consignes-dessin.json), [Cleveland Museum of Art](https://openaccess-api.clevelandart.org/) (CC0) | nothing (Notion, optional) |
+| Book to read | a book from my library that I haven't read yet, dithered cover | a Notion database | `NOTION_TOKEN`, optional |
+| Word of the day | word, pronunciation, definitions, example, etymology | [Wiktionary](https://fr.wiktionary.org/) (French) | nothing |
+| Quote | in the morning Wikiquote's quote of the day if there is one, otherwise one from the bank | [`citations.json`](citations.json) | nothing |
+| Planes | the planes flying around my home: where they come from, where they go, airline, altitude, speed, radar seen from above, next 4 flights; a route inconsistent with the position is discarded | [adsb.lol](https://www.adsb.lol/), [adsbdb](https://www.adsbdb.com/) | nothing |
+| Odd article | an article from Wikipedia's "Unusual articles" page, its blurb, its summary and its image | [`insolites.json`](insolites.json), Wikipedia API | nothing |
+| End of day | from 5 pm: tomorrow's weather, first appointment, bins to put out | Open-Meteo, Google Calendar | same as Calendar |
+| Tomorrow | at night, tomorrow's appointments | Google Calendar | same as Calendar |
 
-Le bandeau du haut porte la date, une case par écran (pleine pour celui affiché), le nombre de mails importants, et la veille du ramassage un rappel des poubelles. Un écran sans réglage (pas de station, pas de base Notion) sort de la rotation et des boutons. Une source en panne affiche un message dans son bloc : l'écran sort toujours.
+The top banner carries the date, one box per screen (filled for the one displayed), the number of important mails, and the evening before collection a reminder for the bins. A screen with no setting (no stop, no Notion database) drops out of the rotation and the buttons. A source that is down shows a message in its block: the screen is always produced.
 
-## Côté Mac
+## Mac side
 
-Il faut un Mac allumé en permanence (le serveur tourne en agent launchd ; sous Linux, un service systemd ferait la même chose), Python 3.11 ou plus récent, et le Chromium de Playwright.
+You need a Mac that stays on all the time (the server runs as a launchd agent; on Linux, a systemd service would do the same), Python 3.11 or newer, and Playwright's Chromium.
 
-1. **Réglages** : `cp config.exemple.json config.json`, puis lieu, agendas, stations (voir « Réglages »). `config.json` n'est jamais versionné.
-2. **Clés**, dans un fichier `.env` à côté des scripts ou dans un dossier parent (le plus proche gagne ; une variable d'environnement passe avant) :
+1. **Settings**: `cp config.exemple.json config.json`, then location, calendars, stops (see "Settings"). `config.json` is never versioned.
+2. **Keys**, in a `.env` file next to the scripts or in a parent folder (the closest wins; an environment variable takes precedence):
 
-   | Variable | Pour |
+   | Variable | For |
    |---|---|
-   | `KINDLE_JETON` | une chaîne au hasard, que la liseuse présente au serveur ; sans elle, le serveur sert tout à tout le réseau local |
-   | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | un client OAuth Google de type « Application de bureau », API Gmail et Agenda activées |
-   | `GOOGLE_KINDLE_REFRESH_TOKEN` | écrit par `python3 autoriser.py` (consentement en lecture seule, mails et agenda) |
-   | `NOTION_TOKEN` | facultatif : concepts de dessin, livre à lire |
-   | `N8N_API_KEY` | facultatif : abonnés |
-   | `GOOGLE_API_KEY`, `META_SYSTEM_USER_TOKEN`, `BREVO_API_KEY` | facultatif : Mon activité (YouTube, Instagram, inscrits) ; les ventes passent par `NOTION_TOKEN` |
+   | `KINDLE_JETON` | a random string, that the Kindle presents to the server; without it, the server serves everything to the whole local network |
+   | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | a Google OAuth client of type "Desktop app", Gmail and Calendar APIs enabled |
+   | `GOOGLE_KINDLE_REFRESH_TOKEN` | written by `python3 autoriser.py` (read-only consent, mail and calendar) |
+   | `NOTION_TOKEN` | optional: drawing concepts, book to read |
+   | `N8N_API_KEY` | optional: subscribers |
+   | `GOOGLE_API_KEY`, `META_SYSTEM_USER_TOKEN`, `BREVO_API_KEY` | optional: My activity (YouTube, Instagram, sign-ups); sales go through `NOTION_TOKEN` |
 
-3. **Serveur** : `python3 serveur.py` relance `dashboard.py --tous` à chaque minute (borné à 110 s) et sert sur le port 8765 l'état, les écrans et les scripts de la liseuse. Pour qu'il démarre avec la session et revienne s'il tombe : adapter les chemins de [`com.exemple.kindle-dashboard.plist`](com.exemple.kindle-dashboard.plist), le copier dans `~/Library/LaunchAgents/`, puis `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.exemple.kindle-dashboard.plist`. Les écrans sont écrits dans `~/Library/Caches/kindle-dashboard/`.
-4. **Scripts de la liseuse** : `python3 publier.py` contrôle chaque script (`dash -n`, pas de fin de ligne Windows) et le copie là où le serveur le sert. C'est le seul chemin : un fichier en cours d'écriture ne part jamais sur la liseuse. La liseuse se met à jour toute seule au passage suivant.
-5. **Santé** : `python3 verifier.py` (code 0 ou 1) : serveur, écrans frais, liseuse vue depuis moins de 10 min, version des scripts, horloge, autorisation Google valable, journal de la liseuse.
+3. **Server**: `python3 serveur.py` reruns `dashboard.py --tous` every minute (capped at 110 s) and serves the state, the screens and the Kindle's scripts on port 8765. To make it start with the session and come back if it dies: adapt the paths in [`com.exemple.kindle-dashboard.plist`](com.exemple.kindle-dashboard.plist), copy it to `~/Library/LaunchAgents/`, then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.exemple.kindle-dashboard.plist`. The screens are written to `~/Library/Caches/kindle-dashboard/`.
+4. **Kindle scripts**: `python3 publier.py` checks each script (`dash -n`, no Windows line endings) and copies it where the server serves it. It is the only path: a file being written never reaches the Kindle. The Kindle updates itself on its next pass.
+5. **Health**: `python3 verifier.py` (code 0 or 1): server, fresh screens, Kindle seen less than 10 minutes ago, script version, clock, valid Google authorization, the Kindle's log.
 
-`dashboard.py` seul : `--modele k4|k5|touch|pw1`, `--rotation 90|270` selon le sens de pose, `--heure 2026-01-01T08:15` pour simuler un moment, `--tous` pour rendre tous les écrans.
+`dashboard.py` alone: `--modele k4|k5|touch|pw1`, `--rotation 90|270` depending on how it is placed, `--heure 2026-01-01T08:15` to simulate a moment, `--tous` to render all the screens.
 
-## Côté liseuse
+## Kindle side
 
-Je l'ai testé sur mon **Kindle 4** non tactile (2011, firmware 4.1.4). Le Kindle 5e génération (2012), le Touch et le Paperwhite 1 sont prévus par `--modele`, mais je ne les ai pas essayés. Il faut un wifi 2,4 GHz en WPA2.
+I tested it on my non-touch **Kindle 4** (2011, firmware 4.1.4). The 5th-generation Kindle (2012), the Touch and the Paperwhite 1 are covered by `--modele`, but I haven't tried them. You need a 2.4 GHz wifi network with WPA2.
 
-1. **Jailbreak** : pour le Kindle 4, le [K4-Jailbreak de KindleModding](https://github.com/KindleModding/K4-Jailbreak), par le mode diagnostic, sans wifi ni compte Amazon. Les autres modèles et les pièges sont dans [`RECHERCHE.md`](RECHERCHE.md) §2. Ne jamais réinitialiser un Paperwhite 1 : Amazon refuse ensuite de l'enregistrer.
-2. **KUAL** (le lanceur d'extensions) dans `documents/`, depuis [kindlemodding.org](https://kindlemodding.org/).
-3. Liseuse branchée en USB, copier à la racine du disque `liseuse/dashboard/` (il devient `/mnt/us/dashboard/`) et `liseuse/extensions/kindle-dashboard/` dans `extensions/`. Avant : mettre l'adresse du Mac dans `dashboard/config.sh` (`SERVEUR=`) et la valeur de `KINDLE_JETON` dans un fichier `dashboard/jeton`. Supprimer ensuite les fichiers `._*` que macOS laisse sur le disque.
-4. Éjecter, activer le wifi, puis KUAL > Kindle-dashboard > **Démarrer le dashboard**. Le démarrage automatique s'installe au premier lancement : le dashboard repart seul 90 s après chaque allumage.
+1. **Jailbreak**: for the Kindle 4, KindleModding's [K4-Jailbreak](https://github.com/KindleModding/K4-Jailbreak), through diagnostic mode, with no wifi or Amazon account. The other models and the pitfalls are in [`RECHERCHE.md`](RECHERCHE.md) §2 (in French). Never reset a Paperwhite 1: Amazon then refuses to register it.
+2. **KUAL** (the extension launcher) in `documents/`, from [kindlemodding.org](https://kindlemodding.org/).
+3. With the Kindle plugged in over USB, copy `liseuse/dashboard/` to the root of the disk (it becomes `/mnt/us/dashboard/`) and `liseuse/extensions/kindle-dashboard/` into `extensions/`. Before that: put the Mac's address in `dashboard/config.sh` (`SERVEUR=`) and the value of `KINDLE_JETON` in a `dashboard/jeton` file. Then delete the `._*` files that macOS leaves on the disk.
+4. Eject, turn on wifi, then KUAL > Kindle-dashboard > **Start the dashboard** ("Démarrer le dashboard" in the menu). Automatic startup is installed on first launch: the dashboard restarts by itself 90 s after every power-on.
 
-Ensuite, plus besoin du câble : `python3 liseuse.py '<commande shell>'` exécute une commande sur la liseuse (en root, sortie et code de retour affichés), `--pousser local /chemin/distant` copie un fichier, `--journal 50` lit son journal, `--redemarrer` la relance.
+After that, no more cable: `python3 liseuse.py '<shell command>'` runs a command on the Kindle (as root, output and return code shown), `--pousser local /remote/path` copies a file, `--journal 50` reads its log, `--redemarrer` restarts it.
 
-**Boutons** (liseuse couchée en paysage) : pavé → ou ↓ = écran suivant, ← ou ↑ = précédent (boutons de page aussi) ; l'écran choisi reste 10 min. Accueil, Retour ou clic du pavé = reprendre la rotation. **Menu deux fois** = quitter le dashboard et retrouver l'interface Amazon.
+**Buttons** (Kindle lying in landscape): pad → or ↓ = next screen, ← or ↑ = previous (page buttons too); the chosen screen stays for 10 min. Home, Back or a pad click = resume the rotation. **Menu twice** = quit the dashboard and get back to the Amazon interface.
 
-### Ce qui tient quand quelque chose lâche
+### What holds when something breaks
 
-| Panne | Réaction |
+| Failure | Reaction |
 |---|---|
-| Mac muet 2 min | la liseuse affiche d'elle-même l'écran en cours avec un bandeau « HORS LIGNE » et l'heure des dernières nouvelles |
-| Mac muet 5 min | relance du wifi, puis recherche du Mac sur tout le réseau local (`/sonde`) ; recommence toutes les 15 min |
-| Mise à jour des scripts abîmée ou cassée | refusée (taille et md5) ; si elle plante, la version précédente revient toute seule (`noyau.sh`, jamais mis à jour à distance, puis `superviseur.sh`) |
-| Boucle bloquée | tuée par un chien de garde après 10 min sans battement, relancée |
-| Horloge de la liseuse fausse | remise à l'heure du Mac au-delà de 30 s d'écart |
-| Liseuse redémarrée branchée au Mac | elle passe en clé USB ; `serveur.py` l'éjecte au bout de 2 min (sauf fichier `garder-usb` dans le dossier de sortie) |
-| `dashboard.py` trop long | arrêté à 110 s ; la liseuse garde les derniers écrans, l'heure du relevé dans le bandeau dit leur âge |
+| Mac silent for 2 min | the Kindle displays the current screen by itself with an "OFFLINE" banner ("HORS LIGNE") and the time of the last news |
+| Mac silent for 5 min | wifi restart, then a search for the Mac across the whole local network (`/sonde`); repeats every 15 min |
+| Script update damaged or broken | refused (size and md5); if it crashes, the previous version comes back by itself (`noyau.sh`, never updated remotely, then `superviseur.sh`) |
+| Stuck loop | killed by a watchdog after 10 min without a heartbeat, restarted |
+| Kindle clock wrong | reset to the Mac's time beyond a 30 s gap |
+| Kindle restarted while plugged into the Mac | it turns into a USB drive; `serveur.py` ejects it after 2 min (unless there is a `garder-usb` file in the output folder) |
+| `dashboard.py` too slow | stopped at 110 s; the Kindle keeps the last screens, the time of the reading in the banner tells their age |
 
-Le jeton passe en clair sur le réseau local : il arrête un appareil curieux, pas quelqu'un qui écoute le wifi. La liseuse ne vérifie pas le Mac. Ça me va pour une vieille liseuse sans compte ni donnée.
+The token travels in clear over the local network: it stops a curious device, not someone listening to the wifi. The Kindle doesn't verify the Mac. That's fine with me for an old e-reader with no account or data.
 
 ## Rotation
 
-`PLAYLIST` dans [`dashboard.py`](dashboard.py), par plage horaire, en secondes par écran. Un écran change toutes les 5 minutes environ : assez pour voir passer le dessin et le mot plusieurs fois par jour, pas assez pour que les flashs dérangent.
+`PLAYLIST` in [`dashboard.py`](dashboard.py), by time slot, in seconds per screen. A screen changes about every 5 minutes: enough to see the drawing and the word go by several times a day, not so often that the flashes get annoying.
 
-| Plage | Écrans (minutes) |
+| Slot | Screens (minutes) |
 |---|---|
-| Matin, 06:30 à 09:00 | Météo 6, Stations 6, Agenda 6, Lumière 5, Courrier 4, Air 3, Mot 4, Citation 3 |
-| Journée, 09:00 à 19:00 | Météo 8, Agenda 6, Courrier 5, Abonnés 4, Activité 4, Air 4, Stations 6, Avions 4, Dessin 6, Lumière 6, Livre 4, Mot 4, Citation 3, Insolite 4, Fin de journée 5 (dès 17 h) |
-| Soirée, 19:00 à 23:00 | Météo 5, Stations 6, Agenda 4, Fin de journée 4, Avions 4, Dessin 8, Livre 6, Insolite 5, Mot 4, Citation 3 |
-| Nuit, 23:00 à 06:30 | Demain, fixe |
+| Morning, 06:30 to 09:00 | Weather 6, Stops 6, Calendar 6, Daylight 5, Mail 4, Air 3, Word 4, Quote 3 |
+| Day, 09:00 to 19:00 | Weather 8, Calendar 6, Mail 5, Subscribers 4, Activity 4, Air 4, Stops 6, Planes 4, Drawing 6, Daylight 6, Book 4, Word 4, Quote 3, Odd article 4, End of day 5 (from 5 pm) |
+| Evening, 19:00 to 23:00 | Weather 5, Stops 6, Calendar 4, End of day 4, Planes 4, Drawing 8, Book 6, Odd article 5, Word 4, Quote 3 |
+| Night, 23:00 to 06:30 | Tomorrow, fixed |
 
-Trois écrans n'entrent dans le cycle que s'ils ont quelque chose à dire : **Courrier** s'il y a un mail important non lu ; **Stations** dans ses créneaux (`stations_creneaux`) et dans les 2 h avant un rendez-vous d'un agenda de sorties, puis fixe dans les 45 dernières minutes ; **Lumière** autour de l'heure bleue et de l'heure dorée. Flash complet à chaque changement d'écran, partiel pour la mise à jour d'un écran qui reste (les minutes du tram).
+Three screens only join the cycle if they have something to say: **Mail** if there is an unread important mail; **Stops** in its slots (`stations_creneaux`) and in the 2 hours before an appointment in an outings calendar, then fixed for the last 45 minutes; **Daylight** around the blue hour and the golden hour. Full flash on every screen change, partial for the update of a screen that stays (the tram minutes).
 
-Je l'ai sur mon bureau toute la journée : pour ne pas revoir les mêmes l'après-midi, dessin, livre, mot, citation et article insolite sont retirés à 13 h (`RETIRAGE` dans [`dashboard.py`](dashboard.py)).
+I keep it on my desk all day: so I don't see the same ones again in the afternoon, drawing, book, word, quote and odd article are redrawn at 1 pm (`RETIRAGE` in [`dashboard.py`](dashboard.py)).
 
-## Réglages
+## Settings
 
-`config.json` (modèle : [`config.exemple.json`](config.exemple.json)) :
+`config.json` (template: [`config.exemple.json`](config.exemple.json)):
 
-| Clé | Rôle |
+| Key | Role |
 |---|---|
-| `lieu` | `nom`, `lat`, `lon` de la météo et du soleil |
-| `agendas` | `{calendarId: libellé}` des agendas Google à lire (`primary` = l'agenda principal) |
-| `agendas_sorties`, `pas_une_sortie` | libellés des agendas où un rendez-vous veut dire « sortir » (écran Stations), et motif des rendez-vous à ignorer (le sport, en voiture) |
-| `poubelles` | `{jour: texte}` du rappel dans le bandeau, la veille au soir (0 = rappel le lundi) |
-| `notion` | `concepts` et `bibliotheque` : identifiants de data sources Notion ; `jeton_bibliotheque` : nom de la variable du jeton |
-| `abonnes` | adresse de la table n8n (`/api/v1/data-tables/<id>/rows`) |
-| `activite` | écran Mon activité : `chaine` (identifiant de chaîne YouTube, `UC…`), `instagram` (identifiant du compte professionnel), `ventes` (data source Notion avec `Date`, `Prix final`, `Remboursement`), `listes` (identifiants de listes Brevo). Chaque bloc vide affiche un tiret ; tout vide, l'écran sort du cycle |
-| `stations` | une entrée par colonne : `nom`, `mode` (étiquette), `parent` (stop_id de la station dans le GTFS), `ligne` (route_id), `sens` (direction_id), `direct` ([nom_station, sens_ligne] du temps réel, tram seulement), `vers` (où va ce sens, en clair) |
-| `stations_creneaux` | créneaux fixes de l'écran Stations : `jour` (0 = lundi), `de`, `a`, `texte` |
-| `ecrans_retires` | écrans à ne jamais afficher |
-| `google_client` | noms des deux variables du client OAuth, si ce ne sont pas `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` |
-| `contact` | une adresse web ou un mail, mis dans l'agent utilisateur des appels à Wikimedia (leur politique le demande) |
+| `lieu` | `nom`, `lat`, `lon` for the weather and the sun |
+| `agendas` | `{calendarId: label}` of the Google calendars to read (`primary` = the main calendar) |
+| `agendas_sorties`, `pas_une_sortie` | labels of the calendars where an appointment means "go out" (Stops screen), and the pattern of appointments to ignore (sport, by car) |
+| `poubelles` | `{day: text}` of the reminder in the banner, the evening before (0 = reminder on Monday) |
+| `notion` | `concepts` and `bibliotheque`: Notion data source identifiers; `jeton_bibliotheque`: name of the token variable |
+| `abonnes` | address of the n8n table (`/api/v1/data-tables/<id>/rows`) |
+| `activite` | My activity screen: `chaine` (YouTube channel identifier, `UC…`), `instagram` (professional account identifier), `ventes` (Notion data source with `Date`, `Prix final`, `Remboursement`), `listes` (Brevo list identifiers). Each empty block shows a dash; if all are empty, the screen leaves the cycle |
+| `stations` | one entry per column: `nom`, `mode` (label), `parent` (stop_id of the station in the GTFS), `ligne` (route_id), `sens` (direction_id), `direct` ([station_name, line_direction] of the real time, tram only), `vers` (where this direction goes, in plain words) |
+| `stations_creneaux` | fixed slots of the Stops screen: `jour` (0 = Monday), `de`, `a`, `texte` |
+| `ecrans_retires` | screens to never display |
+| `google_client` | names of the two OAuth client variables, if they are not `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` |
+| `contact` | a web address or an email, put in the user agent of the calls to Wikimedia (their policy asks for it) |
 
-Pour trouver `parent`, `ligne` et `sens` d'une station ilévia : `stops.txt` (les quais ont la station pour `parent_station`), `routes.txt` et `trips.txt` du [GTFS](https://media.ilevia.fr/opendata/gtfs.zip). Ailleurs qu'à Lille, `horaires_prevus()` lit n'importe quel GTFS (changer `ILEVIA_GTFS` dans `dashboard.py`) ; seul le temps réel (`stations()`) est propre à ilévia : sans `direct`, une station s'affiche d'après les horaires prévus.
+To find `parent`, `ligne` and `sens` for an ilévia station: `stops.txt` (platforms have the station as `parent_station`), `routes.txt` and `trips.txt` of the [GTFS](https://media.ilevia.fr/opendata/gtfs.zip). Outside Lille, `horaires_prevus()` reads any GTFS (change `ILEVIA_GTFS` in `dashboard.py`); only the real time (`stations()`) is specific to ilévia: without `direct`, a station is shown from the scheduled times.
 
-La base Notion de la bibliothèque doit avoir les propriétés `Titre`, `Auteurs`, `Éditeur`, `Date de publication`, `Pages`, `Possession` (case), `Lu` (choix « Non »), `Résumé`, `Tags`, `Type` et une formule `Chemin de la couverture (calc.)` qui donne l'adresse de l'image ; `Suggéré ?` (formule) est facultative. La base des concepts : `Concept` et `Définition`. Sans base de concepts, le dessin du jour prend les 21 concepts de `consignes-dessin.json`.
+The Notion library database must have the properties `Titre`, `Auteurs`, `Éditeur`, `Date de publication`, `Pages`, `Possession` (checkbox), `Lu` (choice "Non"), `Résumé`, `Tags`, `Type` and a formula `Chemin de la couverture (calc.)` that gives the image address; `Suggéré ?` (formula) is optional. The concepts database: `Concept` and `Définition`. Without a concepts database, the drawing of the day takes the 21 concepts of `consignes-dessin.json`.
 
-## Ce que j'ai appris en chemin
+## What I learned along the way
 
-- **ilévia, temps réel** (`dsp_ilevia:prochains_passages`, OGC API de la Métropole européenne de Lille, sans clé) : les heures portent un « Z » mais sont à l'heure de Paris ; seulement les 3 prochains passages par sens ; le métro n'y est pas. Le métro, les premiers et derniers passages, et le tram quand le temps réel se tait, viennent donc du **GTFS** (9 Mo, téléchargé au plus une fois par jour) : services par `calendar_dates.txt` seulement, heures au-delà de 24:00 pour la nuit, deux jours de service lus pour passer minuit.
-- **BusyBox 1.7.2** (celui du Kindle 4, 2007) : `wget` sans `--header` (le jeton passe dans l'agent utilisateur, `-U`) et sans délai ; `timeout` seulement en `timeout -t 5` (`timeout 5` plante) ; pas de `od`, de `command -v` ni de `grep -E` ; `printf` n'est pas intégré au shell (50 ms par appel). Les scripts sont contrôlés sur le Mac par `dash -n` avant d'être servis.
-- **Touches** : un `dd` et un `hexdump` par évènement de `/dev/input/event*`, périphérique gardé ouvert ; 0,7 s d'un appui à l'écran (dont 0,36 s d'`eips`).
-- **E-ink** : polices pixel seulement à leurs tailles natives (VT323 25, 50, 75… ; Silkscreen 16, 24), sans lissage ; aucun texte gris sur une dalle Pearl ; images au contraste étiré puis tramées en 16 gris (Floyd-Steinberg), l'arrondi simple fait des bandes. Mesures et sources : [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md).
-- **Dessins pour l'e-ink** : l'API ouverte du Cleveland Museum renvoie aussi des aquarelles et des feuilles pâles ; `affichable()` garde les techniques graphiques (graphite, craie, plume, fusain, lavis), écarte la couleur, les rectos-versos, les formats extrêmes, et exige une encre entre 4 et 45 % de la surface (seuils calés sur 20 dessins).
-- **Wiktionnaire** : le mot du jour est programmé d'avance, sa page peut ne pas encore exister, ou ne jamais exister (je prends alors celui du même jour une année passée, comme pour le second mot de la journée) ; sans agent utilisateur conforme à la politique de Wikimedia, l'API répond 429.
-- **Avions** : adsbdb donne la route habituelle d'un indicatif, pas celle du vol du jour ; j'ai vu un Hurghada-Nantes cap au nord-est au-dessus de Lille. Je vérifie que l'avion est sur le chemin et vole vers sa destination, sinon j'affiche « trajet inconnu ».
-- **Google** : un client OAuth en mode « Test » voit ses jetons expirer en 7 jours ; `verifier.py` fait un vrai échange de jeton pour le voir venir.
+- **ilévia, real time** (`dsp_ilevia:prochains_passages`, OGC API of the Métropole européenne de Lille, no key): times carry a "Z" but are in Paris time; only the next 3 departures per direction; the metro isn't there. The metro, the first and last departures, and the tram when real time is silent, therefore come from the **GTFS** (9 MB, downloaded at most once a day): services from `calendar_dates.txt` only, times beyond 24:00 for the night, two service days read to get past midnight.
+- **BusyBox 1.7.2** (the Kindle 4's, from 2007): `wget` without `--header` (the token goes in the user agent, `-U`) and without a timeout; `timeout` only as `timeout -t 5` (`timeout 5` crashes); no `od`, `command -v` or `grep -E`; `printf` is not a shell builtin (50 ms per call). The scripts are checked on the Mac by `dash -n` before being served.
+- **Keys**: one `dd` and one `hexdump` per event of `/dev/input/event*`, device kept open; 0.7 s from a press to the screen (of which 0.36 s for `eips`).
+- **E-ink**: pixel fonts only at their native sizes (VT323 25, 50, 75…; Silkscreen 16, 24), no smoothing; no gray text on a Pearl panel; images with stretched contrast then dithered to 16 grays (Floyd-Steinberg), plain rounding makes bands. Measurements and sources: [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md).
+- **Drawings for e-ink**: the Cleveland Museum's open API also returns watercolors and pale sheets; `affichable()` keeps graphic techniques (graphite, chalk, pen, charcoal, wash), drops color, recto-versos and extreme formats, and requires ink between 4 and 45% of the surface (thresholds tuned on 20 drawings).
+- **Wiktionary**: the word of the day is scheduled in advance, its page may not exist yet, or never exist (I then take the one from the same day in a past year, as for the day's second word); without a user agent that complies with Wikimedia's policy, the API answers 429.
+- **Planes**: adsbdb gives the usual route of a callsign, not that of the day's flight; I saw a Hurghada-Nantes heading north-east above Lille. I check that the plane is on the path and flying toward its destination, otherwise I show "unknown route" ("trajet inconnu").
+- **Google**: an OAuth client in "Test" mode sees its tokens expire in 7 days; `verifier.py` does a real token exchange to see it coming.
 
-## Fichiers
+## Files
 
-| Fichier | Rôle |
+| File | Role |
 |---|---|
-| [`dashboard.py`](dashboard.py) | rassemble les données, remplit `gabarit.html`, photographie chaque écran (Playwright), le passe en 16 gris et le tourne |
-| [`gabarit.html`](gabarit.html), [`polices/`](polices) | mise en page et style ; VT323, Silkscreen, Instrument Serif en local |
-| [`serveur.py`](serveur.py) | génère chaque minute, sert l'état, les écrans et les scripts, garde l'écran choisi aux boutons, note chaque passage de la liseuse |
-| [`publier.py`](publier.py) | seul chemin des scripts vers la liseuse, après contrôle |
-| [`liseuse.py`](liseuse.py) | commandes et copies sur la liseuse par le wifi |
-| [`verifier.py`](verifier.py) | santé en une commande |
-| [`autoriser.py`](autoriser.py) | consentement Google en lecture seule, jeton écrit dans le `.env`, jamais affiché |
-| [`citations.py`](citations.py) | refait `citations.json` depuis Wikiquote (une fois par mois suffit) |
-| [`insolites.py`](insolites.py) | refait `insolites.json` depuis la page Wikipédia (une fois par mois suffit) |
-| [`demo.py`](demo.py) | tous les écrans sans compte |
-| [`liseuse/dashboard/`](liseuse/dashboard) | scripts de la liseuse : `noyau.sh` > `superviseur.sh` > `boucle.sh` et `touches.sh` ; `demarrage-auto.sh`, `tester.sh`, `config.sh` |
-| [`liseuse/extensions/kindle-dashboard/`](liseuse/extensions/kindle-dashboard) | menu KUAL |
-| [`RECHERCHE.md`](RECHERCHE.md) | identifier une liseuse, jailbreak par modèle, afficher une image, USB ou wifi, projets existants, batterie |
-| [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md) | dashboards e-ink réussis, règles de l'e-ink, cadence de rotation, maquettes |
+| [`dashboard.py`](dashboard.py) | gathers the data, fills `gabarit.html`, photographs each screen (Playwright), converts it to 16 grays and rotates it |
+| [`gabarit.html`](gabarit.html), [`polices/`](polices) | layout and style; VT323, Silkscreen, Instrument Serif, local |
+| [`serveur.py`](serveur.py) | generates every minute, serves the state, the screens and the scripts, keeps the screen chosen with the buttons, logs every pass of the Kindle |
+| [`publier.py`](publier.py) | the only path of the scripts to the Kindle, after checking |
+| [`liseuse.py`](liseuse.py) | commands and copies on the Kindle over wifi |
+| [`verifier.py`](verifier.py) | health in one command |
+| [`autoriser.py`](autoriser.py) | read-only Google consent, token written to the `.env`, never displayed |
+| [`citations.py`](citations.py) | rebuilds `citations.json` from Wikiquote (once a month is enough) |
+| [`insolites.py`](insolites.py) | rebuilds `insolites.json` from the Wikipedia page (once a month is enough) |
+| [`demo.py`](demo.py) | all the screens without an account |
+| [`liseuse/dashboard/`](liseuse/dashboard) | the Kindle's scripts: `noyau.sh` > `superviseur.sh` > `boucle.sh` and `touches.sh`; `demarrage-auto.sh`, `tester.sh`, `config.sh` |
+| [`liseuse/extensions/kindle-dashboard/`](liseuse/extensions/kindle-dashboard) | KUAL menu |
+| [`RECHERCHE.md`](RECHERCHE.md) | identify a Kindle, jailbreak by model, display an image, USB or wifi, existing projects, battery (in French) |
+| [`RECHERCHE-DESIGN.md`](RECHERCHE-DESIGN.md) | successful e-ink dashboards, e-ink rules, rotation pace, mockups (in French) |
 
-## Licence
+## License
 
-Code et textes sous **[licence MIT](LICENSE)**. Les polices gardent la leur (SIL Open Font License 1.1, dans [`polices/`](polices)) ; `citations.json` reprend les citations du jour de Wikiquote en français et `insolites.json` les lignes de la page « Articles insolites » de Wikipédia (CC BY-SA 4.0). Le Wiktionnaire et les images du Cleveland Museum sont lus à l'exécution, rien n'en est redistribué. Détail : [`LICENCES-TIERS.md`](LICENCES-TIERS.md).
+Code and texts under the **[MIT license](LICENSE)**. The fonts keep their own (SIL Open Font License 1.1, in [`polices/`](polices)); `citations.json` reuses the French Wikiquote quotes of the day and `insolites.json` the lines of Wikipedia's "Unusual articles" page (CC BY-SA 4.0). Wiktionary and the Cleveland Museum images are read at run time, nothing from them is redistributed. Details: [`LICENCES-TIERS.md`](LICENCES-TIERS.md).
 
-Kindle est une marque d'Amazon. Ce projet n'est ni affilié à Amazon, ni à ilévia, ni à la Métropole européenne de Lille.
-
-## In English
-
-My always-on dashboard on a jailbroken Kindle 4 (2011): weather, calendar, mail, live tram and metro departures (Lille's ilévia network, real-time API and GTFS), drawing prompt of the day with a public-domain drawing from the Cleveland Museum of Art, golden and blue hour forecast, French word and quote of the day, an odd Wikipedia article, an end-of-day recap, and my YouTube, Instagram and sales numbers. My Mac renders each screen from HTML with headless Chromium, dithers it to 16 grays and serves it over the local network; the Kindle polls every 20 seconds, updates itself, survives Mac outages and bad updates. Try it without a Kindle or any account: `python3 demo.py`. Code and docs are in French; MIT licence.
+Kindle is a trademark of Amazon. This project is not affiliated with Amazon, ilévia or the Métropole européenne de Lille.
