@@ -849,7 +849,9 @@ def ecran_citation(maintenant, q):
 def ecran(maintenant, panneau, contenu, meteo_html=None, importants=0):
     """Bandeau commun (date, mails importants non lus, place de l'écran dans l'ordre des boutons, heure du relevé),
     puis soit la colonne météo et le panneau de droite, soit un écran plein (meteo_html absent)."""
-    badge = (f'<span class="badge">{icone("enveloppe", 16)}<span class="s24 gras">{"99+" if importants >= 100 else importants}'
+    # Pastille blanche et chiffre VT323 50 (01/01/2026) : en Silkscreen blanc sur noir, le compteur était petit et le
+    # « 4 » illisible.
+    badge = (f'<span class="badge mails">{icone("enveloppe", 16)}<span class="n">{"99+" if importants >= 100 else importants}'
              f'</span></span>' if importants else "")
     points = "".join(f'<i class="{"ici" if p == panneau else ""}"></i>' for p in NAVIGATION)
     quoi = POUBELLES.get(maintenant.weekday())  # la veille du ramassage, toute la journée
